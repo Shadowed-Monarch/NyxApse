@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+    <link rel="icon" type="image/png" href="Focus.png">
+    <title>Focus Train | NyxApse</title>
+    <script src="js/theme.js?v=7"></script>
+    <script src="js/game.js?v=7"></script>
+    <link rel="stylesheet" href="css/stroop.css?v=7">
+    <link rel="stylesheet" href="css/ui.css?v=7">
+</head>
+<body>
+    <header>
+        <a href="index.html" style="text-decoration:none; color:var(--text); font-weight:bold;">← HOME</a>
+        <div style="font-weight:bold;">LEVEL <span id="lvl-display">1</span></div>
+        <div class="brain-wrap"><span>🧠</span> <span id="total-brains">0</span></div>
+    </header>
+    
+    <div style="display:flex; gap:20px; margin-top:10px; font-size:1.2rem;">
+        <div>Solved: <span id="count">0</span>/10</div>
+        <div>Time: <span id="time">30</span>s</div>
+    </div>
+
+    <div id="game-container"><div id="btn-container"></div></div>
+
+    <div id="input-area">
+        <input type="text" id="ans" placeholder="COLOR?" autocomplete="off">
+    </div>
+
+    <button id="start-btn" class="game-btn" onclick="game.start()">START FOCUS</button>
+
+    <script src="js/stroop.js?v=7"></script>
+</body>
+</html>

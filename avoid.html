@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="Reflex.png">
+    <title>Reflex Train | NyxApse</title>
+    <script src="js/theme.js?v=7"></script>
+    <script src="js/game.js?v=7"></script>
+    <link rel="stylesheet" href="css/avoid.css?v=7">
+    <link rel="stylesheet" href="css/ui.css?v=7">
+</head>
+<body>
+    <header>
+        <a href="index.html" style="text-decoration:none; color:var(--text); font-weight:bold;">← HOME</a>
+        <div>LEVEL <span id="lvl-display">1</span></div>
+        <div style="color:#ff77ff; font-weight:bold;">🧠 <span id="total-brains">0</span></div>
+    </header>
+    <div style="margin-top:10px; font-size:1.2rem;">Survive: <span id="time">20</span>s</div>
+    <div id="game-container">
+        <div id="player"></div>
+        <div id="btn-container"></div>
+    </div>
+    <button id="start-btn" class="game-btn" onclick="game.start()">START EVASION</button>
+
+    <script src="js/avoid.js?v=7"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+const C='bt-v7',F=['./','index.html','about.html','math.html','dots.html','memory.html','stroop.html','aim.html','avoid.html','css/ui.css?v=7','js/theme.js?v=7','js/game.js?v=7','css/index.css?v=7','js/index.js?v=7','css/about.css?v=7','css/math.css?v=7','js/math.js?v=7','css/dots.css?v=7','js/dots.js?v=7','css/memory.css?v=7','js/memory.js?v=7','css/stroop.css?v=7','js/stroop.js?v=7','css/aim.css?v=7','js/aim.js?v=7','css/avoid.css?v=7','js/avoid.js?v=7'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(F)));self.skipWaiting()});
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x))))));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request,{cache:'no-cache'}).then(r=>{const cp=r.clone();caches.open(C).then(c=>c.put(e.request,cp));return r}).catch(()=>caches.match(e.request)))});

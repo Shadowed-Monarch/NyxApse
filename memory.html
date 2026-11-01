@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <link rel="icon" type="image/png" href="memory.png">
+    <title>Memory Matrix | NyxApse</title>
+    <script src="js/theme.js?v=7"></script>
+    <script src="js/game.js?v=7"></script>
+    <link rel="stylesheet" href="css/memory.css?v=7">
+    <link rel="stylesheet" href="css/ui.css?v=7">
+</head>
+<body>
+    <header>
+        <a href="index.html" style="text-decoration:none; color:var(--text); font-weight:bold;">← HOME</a>
+        <div style="font-weight:bold;">LEVEL <span id="lvl-display">1</span></div>
+        <div class="brain-wrap"><span>🧠</span> <span id="total-brains">0</span></div>
+    </header>
+    <div id="game-container">
+        <div id="btn-container"><h1 id="m-title" style="font-size:1.8rem;"></h1></div>
+    </div>
+    <button id="main-start-btn" class="game-btn" onclick="game.start()">START GAME</button>
+    <script src="js/memory.js?v=7"></script>
+</body>
+</html>

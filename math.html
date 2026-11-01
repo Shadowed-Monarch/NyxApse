@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+        <link rel="icon" type="image/png" href="maths.png">
+    <title>Maths Train | NyxApse</title>
+    <script src="js/theme.js?v=7"></script>
+    <script src="js/game.js?v=7"></script>
+    <link rel="stylesheet" href="css/math.css?v=7">
+
+    <link rel="stylesheet" href="css/ui.css?v=7">
+</head>
+<body>
+    <header>
+        <a href="index.html" style="text-decoration:none; color:var(--text); font-weight:bold;">← HOME</a>
+        <div style="font-weight:bold;">LEVEL <span id="lvl-display">1</span></div>
+        <div class="brain-wrap"><span>🧠</span> <span id="total-brains">0</span></div>
+    </header>
+    <div id="stats">
+        <div>Solved: <span id="count">0</span>/10</div>
+        <div>Time: <span id="time">30</span>s</div>
+        <div>Next: <span id="next-q">-</span></div>
+    </div>
+    <div id="game-container">
+        <div id="btn-container"></div>
+    </div>
+    <div id="input-area">
+        <input type="number" id="ans" placeholder="?" autocomplete="off">
+    </div>
+    <button id="start-btn" class="game-btn" onclick="game.start()">START GAME</button>
+    <script src="js/math.js?v=7"></script>
+</body>
+</html>
