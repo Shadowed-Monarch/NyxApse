@@ -1,6 +1,6 @@
 # 🧠 NyxApse
 
-**NyxApse** is a web-based mental training suite designed to sharpen your cognitive reflexes, mathematical speed, focus, and memory. Build your **Brain Power**, climb the ranks, and master your mental discipline.
+**NyxApse** (pronounced *NIK-saps*) is a web-based mental training suite designed to sharpen your cognitive reflexes, mathematical speed, focus, and memory. Build your **Brain Power**, climb the ranks, and master your mental discipline.
 
 **[🚀 Play NyxApse Now](https://shadowed-monarch.github.io/NyxApse/)**
 
@@ -37,7 +37,7 @@ Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen
 * **Level Select:** Use ◀ ▶ in any game to replay lower levels.
 * **Save Tools:** Export, import or reset your save code from the Skin Shop.
 * **Anti-Tamper:** Progress is signed, so edits made in browser DevTools are detected and undone. This is a deterrent, not real security, since everything runs on the player's device.
-* **Sound:** Adjustable-volume focus noise, plus win/lose sounds and vibration.
+* **Sound:** Adjustable-volume brown-noise focus sound, plus win/lose sounds and vibration.
 * **Math Variety:** Subtraction unlocks at level 4, multiplication at level 8.
 * **Focus Buttons:** Tap color buttons instead of typing.
 * **Daily Challenge:** A different game each day. Win it 2 to 4 times for +60 coins.
@@ -51,6 +51,11 @@ Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen
 * **About Page:** Rules, ranks and tips, linked from the home screen.
 * **Local Progress:** Ranks, levels and skins are saved in your browser's `LocalStorage`.
 * **Responsive UI:** Works on desktop and mobile (mouse and touch).
+
+## 🔊 About the Focus Sound
+The speaker button on the home screen plays **brown noise**: a deep, soft rumble, a bit like distant rain or a waterfall. White noise is brighter and hissier, like static.
+
+Which one is better comes down to taste. Research on background noise and focus is mixed, almost all of it used white noise, and no solid study shows brown noise beating white. Quieter is usually better than louder. Phone speakers play deep sounds weakly, so brown noise sounds thinner there, and headphones give the full effect. The sound is only a relaxing background, not a medical tool.
 
 ## 📁 Project Structure
 ```
