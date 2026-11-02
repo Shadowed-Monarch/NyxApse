@@ -3,16 +3,16 @@ const BT_RANKS = [
  {name:'Student',min:0,icon:'🎓'},{name:'Scholar',min:500,icon:'📜'},{name:'Sage',min:1500,icon:'🦉'},
  {name:'Genius',min:3000,icon:'💡'},{name:'Prodigy',min:6000,icon:'⚡'},{name:'Mastermind',min:10000,icon:'👑'},
  {name:'Grandmaster',min:20000,icon:'🏆'},{name:'Overlord',min:50000,icon:'🌌'}];
-const BT_GAMES = {math:'Math',dots:'Dots',memory:'Memory',focus:'Focus',aim:'Aim',reflex:'Reflex'};
+const BT_GAMES = {math:'Math',dots:'Dots',memory:'Memory',focus:'Focus',aim:'Aim',reflex:'Reflex',odd:'Odd One Out'};
 const BT = {};
 (function () {
  const LS = localStorage, rawSet = Storage.prototype.setItem, si = window.setInterval;
  const num = k => parseInt(LS.getItem(k)) || 0;
- const PAGES = {'math.html':'math','dots.html':'dots','memory.html':'memory','stroop.html':'focus','aim.html':'aim','avoid.html':'reflex'};
- const FILES = {math:'math.html',dots:'dots.html',memory:'memory.html',focus:'stroop.html',aim:'aim.html',reflex:'avoid.html'};
+ const PAGES = {'math.html':'math','dots.html':'dots','memory.html':'memory','stroop.html':'focus','aim.html':'aim','avoid.html':'reflex','oddout.html':'odd'};
+ const FILES = {math:'math.html',dots:'dots.html',memory:'memory.html',focus:'stroop.html',aim:'aim.html',reflex:'avoid.html',odd:'oddout.html'};
  const KEY = PAGES[location.pathname.split('/').pop()];
- BT.daily = () => { let h = 0; for (const ch of BT.today()) h = (h * 31 + ch.charCodeAt(0)) >>> 0; const k = Object.keys(BT_GAMES); return {key: k[h % k.length]}; };
- const SALT = 'bt1-Shadowed-7f3a', PROT = k => /^bt_(coins|unlocked_.+|skins|current_skin|wins|ach|streak|daily_total|pb)$/.test(k);
+ BT.daily = () => { let h = 0; for (const ch of BT.today()) h = (h * 31 + ch.charCodeAt(0)) >>> 0; const k = Object.keys(BT_GAMES); return {key: k[h % k.length], need: 2 + (h >> 3) % 3}; };
+ const SALT = 'bt1-Shadowed-7f3a', PROT = k => /^bt_(coins|unlocked_.+|skins|current_skin|wins|ach|streak|daily_total|pb|wallet|cal|best_streak|daily_prog)$/.test(k);
  const hash = s => { let h1 = 0xdeadbeef, h2 = 0x41c6ce57; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36); };
  let noSign = false, tamperMsg = '';
  const snap = () => JSON.stringify(Object.fromEntries(Object.keys(LS).filter(PROT).sort().map(k => [k, LS.getItem(k)])));
@@ -32,22 +32,21 @@ const BT = {};
   if (document.body) { toast(tamperMsg); tamperMsg = ''; }
  }
  verify();
+ if (LS.getItem('bt_wallet') === null) BT.raw('bt_wallet', 500);   // one-time starter coins
  BT.reward = l => l <= 30 ? l * 5 : 150 + Math.floor(Math.sqrt(l - 30)) * 5;
  BT.rank = bp => BT_RANKS.filter(r => bp >= r.min).pop();
  BT.today = () => new Date().toDateString();
- BT.streak = () => num('bt_streak');
+ const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+ BT.streak = () => { const l = LS.getItem('bt_last_day'); if (!l) return 0; const y = new Date(Date.now() - 864e5).toDateString(); return (l === BT.today() || l === y) ? num('bt_streak') : 0; };
+ BT.cal = () => { try { return JSON.parse(LS.getItem('bt_cal')) || {}; } catch (e) { return {}; } };
+ BT.markDay = v => { const c = BT.cal(), k = iso(new Date()); if ((c[k] || 0) < v) { c[k] = v; BT.raw('bt_cal', JSON.stringify(c)); } };
 
  // Pause every game timer while the tab is hidden
  window.setInterval = (f, t, ...a) => si(() => { if (!document.hidden && !BT.paused) f(...a); }, t, ...a);
  BT.sync = () => document.documentElement.classList.toggle('bt-paused', document.hidden || !!BT.paused);
  document.addEventListener('visibilitychange', BT.sync);
 
- // Daily streak + time trained
- const t = BT.today(), last = LS.getItem('bt_last_day');
- if (last !== t) {
-  const y = new Date(Date.now() - 864e5).toDateString();
-  BT.raw('bt_streak', last === y ? num('bt_streak') + 1 : 1); BT.raw('bt_last_day', t);
- }
+ // Time trained (the streak now counts days with a win)
  si(() => { if (!document.hidden) BT.raw('bt_time_s', num('bt_time_s') + 5); }, 5000);
 
  // Sound effects + vibration (toggle with localStorage bt_sfx = 'off')
@@ -87,8 +86,23 @@ const BT = {};
    beep([[523,.12],[659,.12],[784,.25]]); buzz(60);
    let bp = +v, msgs = [];
    if (KEY && typeof selectedLvl !== 'undefined' && bp - old === selectedLvl * 5) bp = old + BT.reward(selectedLvl);
-   if (LS.getItem('bt_bonus_date') !== BT.today()) { BT.raw('bt_bonus_date', BT.today()); const b = Math.min(BT.streak(), 7) * 10; bp += b; msgs.push('🔥 Streak bonus +' + b + ' BP'); }
-   if (KEY && KEY === BT.daily().key && LS.getItem('bt_daily_done') !== BT.today()) { BT.raw('bt_daily_done', BT.today()); BT.raw('bt_daily_total', num('bt_daily_total') + 1); bp += 100; msgs.push('🎯 Daily challenge +100 BP'); }
+   const lvl0 = typeof selectedLvl !== 'undefined' ? selectedLvl : 1, tday = BT.today(), lday = LS.getItem('bt_last_day');
+   let gain = 5 + Math.min(lvl0, 50);                                    // coins for this win
+   if (lday !== tday) {                                                  // streak: only days with a win count
+    const yd = new Date(Date.now() - 864e5).toDateString(), sk = lday === yd ? num('bt_streak') + 1 : 1;
+    BT.raw('bt_streak', sk); BT.raw('bt_last_day', tday); if (sk > num('bt_best_streak')) BT.raw('bt_best_streak', sk);
+   }
+   BT.markDay(1);
+   if (LS.getItem('bt_bonus_date') !== tday) { BT.raw('bt_bonus_date', tday); const b = Math.min(BT.streak(), 7) * 10; gain += b; msgs.push('🔥 Streak bonus +' + b + ' 🪙'); }
+   const dc = BT.daily();                                                // daily challenge: win the chosen game N times today
+   if (KEY && KEY === dc.key && LS.getItem('bt_daily_done') !== tday) {
+    let pr; try { pr = JSON.parse(LS.getItem('bt_daily_prog')) || {}; } catch (e) { pr = {}; }
+    if (pr.d !== tday) pr = {d: tday, n: 0};
+    pr.n++; BT.raw('bt_daily_prog', JSON.stringify(pr));
+    if (pr.n >= dc.need) { BT.raw('bt_daily_done', tday); BT.raw('bt_daily_total', num('bt_daily_total') + 1); BT.markDay(2); gain += 60; msgs.push('🎯 Daily challenge complete! +60 🪙'); }
+    else msgs.push('🎯 Daily challenge ' + pr.n + '/' + dc.need);
+   }
+   BT.raw('bt_wallet', num('bt_wallet') + gain); BT.lastCoins = gain;
    if (KEY && BT.t0) {
     const sec = Math.round((Date.now() - BT.t0) / 100) / 10; let pb;
     try { pb = JSON.parse(LS.getItem('bt_pb')) || {}; } catch (e) { pb = {}; }
@@ -136,7 +150,7 @@ const BT = {};
  function checkAch() {
   let got; try { got = JSON.parse(LS.getItem('bt_ach')) || []; } catch (e) { got = []; }
   const fresh = ACH.filter(a => !got.includes(a.id) && a.test());
-  if (fresh.length) { BT.raw('bt_ach', JSON.stringify(got.concat(fresh.map(a => a.id)))); fresh.forEach((a, i) => setTimeout(() => toast('🏅 Achievement: ' + a.icon + ' ' + a.name), 2500 + i * 1200)); }
+  if (fresh.length) { BT.raw('bt_ach', JSON.stringify(got.concat(fresh.map(a => a.id)))); BT.raw('bt_wallet', num('bt_wallet') + 25 * fresh.length); fresh.forEach((a, i) => setTimeout(() => toast('🏅 Achievement: ' + a.icon + ' ' + a.name + ' +25 🪙'), 2500 + i * 1200)); }
   return got.concat(fresh.map(a => a.id));
  }
  BT.checkAch = checkAch;
@@ -145,6 +159,7 @@ const BT = {};
   dots:'Tap the numbered dots in order, starting from 1, before time runs out. A wrong tap fails the level.',
   memory:'Watch the glowing blocks, then tap all of them from memory. One wrong tap fails the level.',
   focus:'Tap or type the COLOR of the word, not the word itself. Solve 10 to clear the level.',
+  odd:'Tap the one shape that is different from the others (color, size or rotation). Find 10 to clear the level. A wrong tap costs 3 seconds.',
   aim:'Two bubbles fall at once. Tap them before they reach the bottom. Pop 15 to clear the level (the goal rises to 20 by level 100).',
   reflex:'Move your mouse or finger to dodge the falling bubbles. Survive until the timer reaches 0.'
  };
@@ -183,7 +198,7 @@ const BT = {};
   } else {
    h.textContent = pick(WIN_MSGS, 'w');
    try { sessionStorage.removeItem('bt_ls_' + KEY + '_' + lvl); } catch (e) {}
-   p.textContent = '+' + (BT.lastReward || BT.reward(lvl)) + ' BP · Level ' + lvl + ' cleared' + (BT.newBest ? ' · ⚡ New best time!' : '');
+   p.textContent = '+' + (BT.lastReward || BT.reward(lvl)) + ' BP · +' + (BT.lastCoins || 0) + ' 🪙 · Level ' + lvl + ' cleared' + (BT.newBest ? ' · ⚡ New best time!' : '');
   }
   h.after(p);
  }
@@ -268,9 +283,33 @@ const BT = {};
   }
   const got = checkAch();
   const dl = document.getElementById('bt-daily');
-  if (dl) { const k = BT.daily().key; dl.innerHTML = LS.getItem('bt_daily_done') === BT.today() ? '✅ Daily challenge complete! Come back tomorrow.' : '🎯 Daily challenge: win <a href="' + FILES[k] + '" style="color:var(--accent)">' + BT_GAMES[k] + '</a> today for +100 BP'; }
+  if (dl) {
+   const k = BT.daily(), done = LS.getItem('bt_daily_done') === BT.today(); let pr; try { pr = JSON.parse(LS.getItem('bt_daily_prog')) || {}; } catch (e) { pr = {}; }
+   const n = pr.d === BT.today() ? pr.n : 0;
+   dl.innerHTML = done ? '✅ Daily challenge complete! Come back tomorrow.' : '🎯 Daily challenge: win <a href="' + FILES[k.key] + '" style="color:var(--accent)">' + BT_GAMES[k.key] + '</a> ' + k.need + ' times today (' + n + '/' + k.need + ') · +60 🪙';
+  }
   const ac = document.getElementById('bt-ach');
   if (ac) ac.innerHTML = ACH.map(a => '<div title="' + a.name + '" style="width:76px;text-align:center;font-size:.65rem;opacity:' + (got.includes(a.id) ? 1 : .25) + '"><div style="font-size:1.7rem">' + a.icon + '</div>' + a.name + '</div>').join('');
+  const cl = document.getElementById('bt-cal');
+  if (cl) {
+   let mo = new Date(); mo = new Date(mo.getFullYear(), mo.getMonth(), 1);
+   const draw = () => {
+    const cal = BT.cal(), y = mo.getFullYear(), m = mo.getMonth(), first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate(), today = iso(new Date());
+    let h = '<div class="cal-head"><button class="header-btn" id="cal-prev" aria-label="Previous month">◀</button><b>' + mo.toLocaleString('en', {month: 'long', year: 'numeric'}) + '</b><button class="header-btn" id="cal-next" aria-label="Next month">▶</button></div>';
+    h += '<div class="cal-grid">' + ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => '<span class="cal-dow">' + d + '</span>').join('');
+    for (let i = 0; i < first; i++) h += '<span></span>';
+    for (let d = 1; d <= days; d++) {
+     const k = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0'), v = cal[k] || 0;
+     h += '<span class="cal-day' + (v ? ' on' : '') + (k === today ? ' today' : '') + '" title="' + (v === 2 ? 'Daily challenge done' : v ? 'Won a level' : '') + '">' + d + (v === 2 ? '<i>⭐</i>' : '') + '</span>';
+    }
+    const s = BT.streak();
+    h += '</div><div class="cal-foot">🔥 Streak: <b>' + s + '</b> day' + (s === 1 ? '' : 's') + ' · Best: <b>' + Math.max(num('bt_best_streak'), s) + '</b> · ⭐ = daily challenge done</div>';
+    cl.innerHTML = h;
+    document.getElementById('cal-prev').onclick = () => { mo = new Date(y, m - 1, 1); draw(); };
+    document.getElementById('cal-next').onclick = () => { mo = new Date(y, m + 1, 1); draw(); };
+   };
+   draw();
+  }
   if (key && d) {
    const hb = (txt, label, fn) => { const b = document.createElement('button'); b.textContent = txt; b.setAttribute('aria-label', label); b.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer;margin-left:6px;padding:0 8px;min-width:34px;min-height:34px;font-size:1rem'; b.onclick = fn; return b; };
    const pbEl = document.createElement('small'); pbEl.style.cssText = 'display:block;font-size:.65rem;color:var(--subtext);text-align:center';
