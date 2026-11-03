@@ -36,12 +36,6 @@ input.sw:checked::after { transform: translateX(20px); }
 .stat-grid b { display: block; font-size: 1.05rem; color: var(--text); }
 .lv-grid { display: flex; flex-wrap: wrap; gap: 6px; font-size: .75rem; color: var(--subtext); } .lv-grid span { border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; }
 #pf-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
-/* menu dock (home page) */
-#dock { position: fixed; left: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; gap: 2px; background: var(--card, #111); border: 1px solid var(--border); border-radius: 999px; padding: 6px; z-index: 500; box-shadow: 0 8px 30px rgba(0, 0, 0, .45); backdrop-filter: blur(10px); max-width: 96vw; }
-#dock button { background: transparent; border: 0; color: var(--text); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 13px; border-radius: 999px; cursor: pointer; font-size: .66rem; font-weight: 600; }
-#dock button span { font-size: 1.25rem; }
-#dock button:hover, #dock button:active { background: var(--accent); color: #000; }
-body:has(#dock) { padding-bottom: 96px; }
 /* the name follows your skin colour (including rainbow) */
 .hero h1 { color: var(--accent) !important; }
 /* looks */
@@ -53,3 +47,43 @@ html.bt-min .hero h1 { letter-spacing: 2px !important; }
 html.bt-min #dock, html.bt-min .bt-card { backdrop-filter: none; }
 html.bt-big { font-size: 112%; }
 html.bt-compact .game-card { padding: 10px !important; } html.bt-compact .hero { margin: 6px 0 !important; } html.bt-compact .rank-container { margin: 10px 0 !important; padding: 12px !important; }
+
+/* ---------- left menu: a slide-in drawer on phones, a fixed side rail on desktop ---------- */
+#dock { position: fixed; top: 0; left: 0; bottom: 0; width: 240px; z-index: 600; display: flex; flex-direction: column; gap: 4px; padding: 18px 12px; box-sizing: border-box; overflow-y: auto; background: var(--card, #111); border-right: 1px solid var(--border); transform: translateX(-104%); transition: transform .25s ease; }
+#dock .dock-brand { font-weight: 800; letter-spacing: .2em; text-transform: uppercase; font-size: .9rem; padding: 6px 12px 14px; color: var(--accent); }
+#dock button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; border-radius: 12px; border: 0; background: transparent; color: var(--text); font-size: 1rem; text-align: left; cursor: pointer; }
+#dock button span { font-size: 1.3rem; width: 1.6rem; text-align: center; }
+#dock button:hover, #dock button:active { background: var(--accent); color: #000; }
+#dock-bg { position: fixed; inset: 0; z-index: 550; background: rgba(0, 0, 0, .55); display: none; }
+body.menu-open #dock { transform: none; }
+body.menu-open #dock-bg { display: block; }
+#menu-btn { margin-right: 4px; }
+@media (min-width: 900px) {
+  #dock { transform: none; }
+  #dock-bg, body.menu-open #dock-bg { display: none; }
+  #menu-btn { display: none; }
+  body:has(#dock) { padding-left: 250px; }
+}
+/* ---------- the glow follows the live (rainbow) colour ---------- */
+html[data-theme="dark"] body { --shadow-color: var(--accent); }
+/* ---------- timers ---------- */
+.rng { flex-wrap: wrap; justify-content: flex-end; } .tv { flex-basis: 100%; text-align: right; min-width: 0; color: var(--subtext); }
+/* ---------- MINIMAL: true black and white, flat and sleek, no glow ---------- */
+html.bt-min { filter: grayscale(1); }
+html.bt-min.bt-colors { filter: none; }                       /* the Focus game needs real colours */
+html.bt-min, html.bt-min body { --accent: #ffffff !important; }
+html.bt-min body.rainbow-active { animation: none !important; }
+html.bt-min[data-theme="dark"] { --bg: #000; --card: #000; --panel: #000; --text: #f2f2f2; --subtext: #8c8c8c; --border: #2b2b2b; --brain: #f2f2f2; --overlay: rgba(0, 0, 0, .94); }
+html.bt-min[data-theme="light"] { --bg: #fff; --card: #fff; --panel: #fff; --text: #0a0a0a; --subtext: #6b6b6b; --border: #d8d8d8; --brain: #0a0a0a; --overlay: rgba(255, 255, 255, .95); }
+html.bt-min[data-theme="light"], html.bt-min[data-theme="light"] body { --accent: #000000 !important; }
+html.bt-min *, html.bt-min *::before, html.bt-min *::after { box-shadow: none !important; text-shadow: none !important; }
+html.bt-min .game-card, html.bt-min .rank-container, html.bt-min .section, html.bt-min #bt-cal, html.bt-min .bt-card, html.bt-min #dock { background: var(--bg) !important; border: 1px solid var(--border) !important; border-radius: 6px !important; }
+html.bt-min .game-btn, html.bt-min .header-btn, html.bt-min .bt-btn, html.bt-min .brain-display, html.bt-min .seg, html.bt-min .seg button, html.bt-min #game-container, html.bt-min .bt-in, html.bt-min #ans { border-radius: 6px !important; }
+html.bt-min .brain-display { background: transparent !important; border: 1px solid var(--border) !important; color: var(--text) !important; }
+html.bt-min .game-btn { background: transparent !important; border: 1px solid var(--text) !important; color: var(--text) !important; letter-spacing: .14em; font-weight: 500; }
+html.bt-min .game-btn:hover, html.bt-min .header-btn:hover, html.bt-min .bt-btn:hover, html.bt-min #dock button:hover, html.bt-min .bt-btn.pri, html.bt-min .seg button.on { background: var(--text) !important; color: var(--bg) !important; border-color: var(--text) !important; }
+html.bt-min .hero h1 { font-weight: 300 !important; letter-spacing: .35em !important; font-size: clamp(1.6rem, 6vw, 2.6rem) !important; }
+html.bt-min .game-card h3 { font-weight: 500; letter-spacing: .18em; font-size: .8rem; }
+html.bt-min body > header { border-bottom-width: 1px !important; }
+html.bt-min #dock .dock-brand { font-weight: 300; }
+html.bt-min .cal-day.on { background: var(--text) !important; color: var(--bg) !important; }
