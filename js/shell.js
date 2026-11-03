@@ -51,7 +51,7 @@
   if (typeof game !== 'undefined' && game.isPlaying && !BT.paused) { BT.paused = true; BT.sync(); pausedByModal = true; }
   return {el: m, close};
  }
- document.addEventListener('keydown', e => { if (e.key === 'Escape') { const ms = document.querySelectorAll('.bt-modal'), m = ms[ms.length - 1]; if (m && !m.dataset.locked) m.querySelector('[data-close]') && m.querySelector('[data-close]').click(); } });
+ document.addEventListener('keydown', e => { if (e.key === 'Escape') { document.body.classList.remove('menu-open'); const ms = document.querySelectorAll('.bt-modal'), m = ms[ms.length - 1]; if (m && !m.dataset.locked) m.querySelector('[data-close]') && m.querySelector('[data-close]').click(); } });
  const head = t => '<div class="bt-head"><h2>' + t + '</h2><button class="bt-x" data-close aria-label="Close">✕</button></div>';
 
  // ---------- Settings ----------
@@ -65,7 +65,7 @@
    '<h3>🔊 Sound</h3><div class="row"><span>Focus sound</span>' + seg('noise', [['off', 'Off'], ['brown', 'Brown'], ['pink', 'Pink'], ['white', 'White']]) + '</div>' +
    '<div class="row"><span>Volume</span><input type="range" data-key="vol" min="0.05" max="1.5" step="0.05"></div>' + sw('sfx', 'Sound effects') + sw('vibe', 'Vibration') +
    '<h3>🎨 Look</h3><div class="row"><span>Theme</span>' + seg('theme', [['dark', 'Dark'], ['light', 'Light'], ['auto', 'Auto']]) + '</div>' +
-   '<div class="row"><span>Style</span>' + seg('style', [['neon', 'Neon'], ['minimal', 'Minimal']]) + '</div>' +
+   '<div class="row"><span>Style</span>' + seg('style', [['neon', 'Neon'], ['minimal', 'Minimal B&amp;W']]) + '</div>' +
    sw('glow', 'Glow effects') + sw('grain', 'Background grain') + sw('confetti', 'Confetti') + sw('big', 'Large text') + sw('compact', 'Compact layout') +
    '<h3>⏱ Game timers</h3><p class="hint">Change the seconds for each game. More time is easier, so wins pay less; less time pays more.</p>' + timers +
    '<button class="bt-btn" data-act="timers">Reset timers</button>' +
@@ -74,11 +74,12 @@
    '<p class="hint">Export copies a save code you can use to back up or move your progress to another device.</p>' +
    '<p class="hint"><a href="about.html">About NyxApse</a></p>');
   const el = m.el, fmt = o => o === 0 ? 'normal' : (o > 0 ? '+' : '−') + Math.abs(o) + 's';
+  const lab = k => { const o = BT.off(k); return fmt(o) + (o ? ' · wins pay ×' + BT.timeFactor(k).toFixed(2) : ''); };
   const sync = () => { const c = btCfg();
    el.querySelectorAll('.seg').forEach(s => s.querySelectorAll('button').forEach(b => b.classList.toggle('on', c[s.dataset.key] === b.dataset.v)));
    el.querySelectorAll('input.sw').forEach(i => { i.checked = !!c[i.dataset.key]; });
    const v = el.querySelector('[data-key="vol"]'); v.value = c.vol;
-   el.querySelectorAll('[data-timer]').forEach(r => { r.value = BT.off(r.dataset.timer); r.nextElementSibling.textContent = fmt(BT.off(r.dataset.timer)); }); };
+   el.querySelectorAll('[data-timer]').forEach(r => { r.value = BT.off(r.dataset.timer); r.nextElementSibling.textContent = lab(r.dataset.timer); }); };
   el.addEventListener('click', e => {
    const b = e.target.closest('.seg button'), a = e.target.closest('[data-act]');
    if (b) { const key = b.parentElement.dataset.key, v = b.dataset.v;
@@ -92,7 +93,7 @@
   el.addEventListener('input', e => {
    const i = e.target;
    if (i.dataset.key === 'vol') { btSave({vol: Number(i.value)}); applyNoise(); }
-   if (i.dataset.timer) { const t = Object.assign({}, btCfg().timers); t[i.dataset.timer] = Number(i.value); btSave({timers: t}); i.nextElementSibling.textContent = fmt(Number(i.value)); }
+   if (i.dataset.timer) { const t = Object.assign({}, btCfg().timers); t[i.dataset.timer] = Number(i.value); btSave({timers: t}); i.nextElementSibling.textContent = lab(i.dataset.timer); }
   });
   el.addEventListener('change', e => { const i = e.target; if (i.classList.contains('sw')) { btSave({[i.dataset.key]: i.checked}); sync(); } });
   sync();
@@ -137,13 +138,16 @@
 
  // ---------- Menu ----------
  function go(where) {
+  document.body.classList.remove('menu-open');
+  if (where === 'profile') openProfile();
+  if (where === 'settings') openSettings();
   if (where === 'home') window.scrollTo({top: 0, behavior: 'smooth'});
   if (where === 'games') { const g = $('.game-grid'); if (g) g.scrollIntoView({behavior: 'smooth', block: 'center'}); }
   if (where === 'shop' && typeof toggleShop === 'function') toggleShop();
   if (where === 'ranks') openRanks();
   if (where === 'about') location.href = 'about.html';
  }
- window.NX = {openSettings, openProfile, openRanks, go};
+ window.NX = {openSettings, openProfile, openRanks, go, menu: () => document.body.classList.toggle('menu-open')};
 
  document.addEventListener('DOMContentLoaded', () => {
   // settings button on every page
