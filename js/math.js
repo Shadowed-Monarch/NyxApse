@@ -5,7 +5,7 @@ class MathGame {
         this.brains = parseInt(localStorage.getItem('bt_coins')) || 0;
         this.isPlaying = false;
         this.solved = 0;
-        this.time = 30;
+        this.time = BT.time('math', 30);
         this.active = null;
         this.timer = null;
         this.updateUI();
@@ -20,9 +20,9 @@ class MathGame {
         btnContainer.innerHTML = "";
         this.nextQ = null;
         this.solved = 0;
-        this.time = 30;
+        this.time = BT.time('math', 30);
         document.getElementById('count').innerText = "0";
-        document.getElementById('time').innerText = "30";
+        document.getElementById('time').innerText = this.time;
     }
     start() {
         document.getElementById('start-btn').style.display = 'none';

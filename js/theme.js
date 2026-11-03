@@ -28,8 +28,21 @@ const BT_SKINS = [
     { id: 'rainbow', hex: 'rainbow' }
 ];
 
+const BT_DEFAULTS = {noise: 'off', vol: 0.8, sfx: true, vibe: true, theme: 'dark', style: 'neon', glow: true, grain: true, confetti: true, big: false, compact: false, leaderboard: false, timers: {}};
+function btCfg() {
+    let s = {}; try { s = JSON.parse(localStorage.getItem('bt_settings')) || {}; } catch (e) {}
+    const legacy = {theme: localStorage.getItem('bt_mode') || 'dark', sfx: localStorage.getItem('bt_sfx') !== 'off'};
+    return Object.assign({}, BT_DEFAULTS, legacy, s);
+}
+function btSave(patch) { const c = Object.assign(btCfg(), patch); localStorage.setItem('bt_settings', JSON.stringify(c)); applyTheme(); return c; }
+function btApplyClasses() {
+    const c = btCfg(), root = document.documentElement;
+    root.setAttribute('data-theme', c.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : c.theme);
+    root.classList.toggle('bt-min', c.style === 'minimal'); root.classList.toggle('bt-noglow', !c.glow); root.classList.toggle('bt-nograin', !c.grain);
+    root.classList.toggle('bt-big', !!c.big); root.classList.toggle('bt-compact', !!c.compact);
+}
 function applyTheme() {
-    document.documentElement.setAttribute('data-theme', localStorage.getItem('bt_mode') || 'dark');
+    btApplyClasses();
     const id = localStorage.getItem('bt_current_skin') || 'red';
     const skin = BT_SKINS.find(c => c.id === id) || BT_SKINS[0];
     if (skin.id === 'rainbow') {
@@ -41,3 +54,5 @@ function applyTheme() {
 }
 window.addEventListener('DOMContentLoaded', applyTheme);
 window.addEventListener('focus', applyTheme);
+
+btApplyClasses();   // apply the saved look straight away (no flash)

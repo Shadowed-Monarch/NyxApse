@@ -21,7 +21,7 @@ class FocusGame {
         document.getElementById('start-btn').style.display = 'none';
         document.getElementById('btn-container').style.display = 'none';
         this.solved = 0; 
-        this.time = 30; 
+        this.time = BT.time('focus', 30); document.getElementById('time').innerText = this.time; 
         this.isPlaying = true;
         document.getElementById('count').innerText = "0";
         document.getElementById('ans').value = "";

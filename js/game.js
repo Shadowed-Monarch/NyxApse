@@ -33,6 +33,10 @@ const BT = {};
  }
  verify();
  if (LS.getItem('bt_wallet') === null) BT.raw('bt_wallet', 500);   // one-time starter coins
+ BT.TIMERS = {math: {base: 30, min: -10, max: 20}, dots: {base: 8, min: -3, max: 10}, memory: {base: 3, min: -1, max: 3}, focus: {base: 30, min: -10, max: 20}, aim: {base: 25, min: -10, max: 20}, reflex: {base: 20, min: -10, max: 20, inverse: true}, odd: {base: 30, min: -10, max: 20}};
+ BT.off = k => { const d = BT.TIMERS[k]; if (!d) return 0; const o = Number(((btCfg().timers) || {})[k]) || 0; return Math.max(d.min, Math.min(d.max, Math.round(o))); };
+ BT.time = (k, base) => Math.max(3, Math.round(base + BT.off(k)));
+ BT.timeFactor = k => { const d = BT.TIMERS[k]; if (!d) return 1; const o = BT.off(k); return Math.max(0.5, Math.min(1.5, d.inverse ? (d.base + o) / d.base : d.base / (d.base + o))); };
  BT.reward = l => l <= 30 ? l * 5 : 150 + Math.floor(Math.sqrt(l - 30)) * 5;
  BT.rank = bp => BT_RANKS.filter(r => bp >= r.min).pop();
  BT.today = () => new Date().toDateString();
@@ -52,7 +56,7 @@ const BT = {};
  // Sound effects + vibration (toggle with localStorage bt_sfx = 'off')
  let ctx;
  function beep(notes) {
-  if (LS.getItem('bt_sfx') === 'off') return;
+  if (btCfg().sfx === false || LS.getItem('bt_sfx') === 'off') return;
   try {
    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
    if (ctx.state === 'suspended') ctx.resume();
@@ -65,7 +69,7 @@ const BT = {};
    });
   } catch (e) {}
  }
- const buzz = p => navigator.vibrate && navigator.vibrate(p);
+ const buzz = p => btCfg().vibe !== false && navigator.vibrate && navigator.vibrate(p);
  function toast(msg) {
   const d = document.createElement('div'); d.textContent = msg;
   d.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:10px 18px;border-radius:20px;font-weight:bold;z-index:99999;box-shadow:0 4px 20px #0008;max-width:90vw;text-align:center';
@@ -86,8 +90,10 @@ const BT = {};
    beep([[523,.12],[659,.12],[784,.25]]); buzz(60);
    let bp = +v, msgs = [];
    if (KEY && typeof selectedLvl !== 'undefined' && bp - old === selectedLvl * 5) bp = old + BT.reward(selectedLvl);
+   const tf = KEY ? BT.timeFactor(KEY) : 1;                              // more time = easier = smaller reward
+   if (tf !== 1) bp = old + Math.round((bp - old) * tf);
    const lvl0 = typeof selectedLvl !== 'undefined' ? selectedLvl : 1, tday = BT.today(), lday = LS.getItem('bt_last_day');
-   let gain = 5 + Math.min(lvl0, 50);                                    // coins for this win
+   let gain = Math.round((5 + Math.min(lvl0, 50)) * tf);                                    // coins for this win
    if (lday !== tday) {                                                  // streak: only days with a win count
     const yd = new Date(Date.now() - 864e5).toDateString(), sk = lday === yd ? num('bt_streak') + 1 : 1;
     BT.raw('bt_streak', sk); BT.raw('bt_last_day', tday); if (sk > num('bt_best_streak')) BT.raw('bt_best_streak', sk);
@@ -103,7 +109,7 @@ const BT = {};
     else msgs.push('🎯 Daily challenge ' + pr.n + '/' + dc.need);
    }
    BT.raw('bt_wallet', num('bt_wallet') + gain); BT.lastCoins = gain;
-   if (KEY && BT.t0) {
+   if (KEY && BT.t0 && BT.off(KEY) === 0) {
     const sec = Math.round((Date.now() - BT.t0) / 100) / 10; let pb;
     try { pb = JSON.parse(LS.getItem('bt_pb')) || {}; } catch (e) { pb = {}; }
     pb[KEY] = pb[KEY] || {}; const prev = pb[KEY][selectedLvl];
@@ -124,6 +130,7 @@ const BT = {};
  };
 
  function confetti() {
+  if (btCfg().confetti === false) return;
   const cols = ['#ff0055','#ffcc00','#00ff88','#00ccff','#9900ff'];
   for (let i = 0; i < 40; i++) {
    const e = document.createElement('div');
@@ -153,7 +160,7 @@ const BT = {};
   if (fresh.length) { BT.raw('bt_ach', JSON.stringify(got.concat(fresh.map(a => a.id)))); BT.raw('bt_wallet', num('bt_wallet') + 25 * fresh.length); fresh.forEach((a, i) => setTimeout(() => toast('🏅 Achievement: ' + a.icon + ' ' + a.name + ' +25 🪙'), 2500 + i * 1200)); }
   return got.concat(fresh.map(a => a.id));
  }
- BT.checkAch = checkAch;
+ BT.checkAch = checkAch; BT.achTotal = ACH.length;
  const HOW = {
   math:'Type the answer to the falling equation. Solve 10 to clear the level. Each correct answer adds 1 second.',
   dots:'Tap the numbered dots in order, starting from 1, before time runs out. A wrong tap fails the level.',

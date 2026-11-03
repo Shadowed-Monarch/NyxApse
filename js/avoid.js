@@ -23,7 +23,7 @@ class ReflexGame {
         p.style.left = this.px + 'px'; p.style.top = this.py + 'px';
 
         this.isPlaying = true; 
-        this.time = 20; 
+        this.time = BT.time('reflex', 20); document.getElementById('time').innerText = this.time; 
 
         // Start Spawning
         const wScale = Math.min(2.5, Math.max(1, 800 / container.clientWidth));   // narrow screens get fewer bubbles

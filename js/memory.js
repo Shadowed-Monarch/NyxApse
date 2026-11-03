@@ -45,7 +45,7 @@ class MemoryGame {
                     container.children[id + 1].classList.remove('glow');
                 });
                 this.enableUserClicks();
-            }, 2000 + this.sequence.length * 150);
+            }, Math.max(800, 2000 + this.sequence.length * 150 + BT.off('memory') * 1000));
         }, 500);
     }
     enableUserClicks() {

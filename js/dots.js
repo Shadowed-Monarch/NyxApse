@@ -19,7 +19,7 @@ class DotGame {
         btnContainer.style.display = 'none';
         btnContainer.innerHTML = `<h1 id="m-title" style="font-size:2.2rem;"></h1>`;
         this.nextNum = 1;
-        this.timeLeft = Math.max(6, 11 - Math.floor(selectedLvl/10)); 
+        this.timeLeft = BT.time('dots', Math.max(6, 11 - Math.floor(selectedLvl/10))); 
         document.getElementById('next-num').innerText = "1";
         document.getElementById('time').innerText = this.timeLeft;
     }

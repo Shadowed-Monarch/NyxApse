@@ -1,40 +1,4 @@
 /* index.js - logic for the home screen */
-// --- AUDIO ENGINE ---
-let audioCtx, noiseNode, gainNode;
-let isPlaying = false;
-
-let vol = parseFloat(localStorage.getItem("bt_vol")) || 0.8;
-window.addEventListener('DOMContentLoaded', () => document.getElementById('vol').value = vol);
-function setVol(v) { vol = parseFloat(v); localStorage.setItem("bt_vol", v); if (isPlaying) gainNode.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.05); }
-function toggleNoise() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const bufferSize = 2 * audioCtx.sampleRate;
-        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        let lastOut = 0.0;
-        for (let i = 0; i < bufferSize; i++) {
-            const white = Math.random() * 2 - 1;
-            output[i] = (lastOut + (0.02 * white)) / 1.02; // Brown Noise
-            lastOut = output[i];
-            output[i] *= 3.5;
-        }
-        noiseNode = audioCtx.createBufferSource();
-        noiseNode.buffer = noiseBuffer;
-        noiseNode.loop = true;
-        gainNode = audioCtx.createGain();
-        gainNode.gain.value = 0; // Start muted
-        noiseNode.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        noiseNode.start();
-    }
-
-    isPlaying = !isPlaying;
-    document.getElementById('sound-btn').innerText = isPlaying ? "🔊" : "🔇";
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    gainNode.gain.setTargetAtTime(isPlaying ? vol : 0, audioCtx.currentTime, 0.1);
-}
-
 const colors = [
     {id:'red', hex:'#ff0000', cost:0}, {id:'blue', hex:'#0088ff', cost:100},
     {id:'yellow', hex:'#ffcc00', cost:250}, {id:'green', hex:'#00ff00', cost:500},
@@ -48,8 +12,6 @@ const ranks = BT_RANKS;
 let userBrains, unlocked, currentSkin, wallet;
 
 function updateUI() {
-    const savedMode = localStorage.getItem('bt_mode') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedMode);
     userBrains = parseInt(localStorage.getItem('bt_coins')) || 0;
     wallet = parseInt(localStorage.getItem('bt_wallet')) || 0;
     unlocked = JSON.parse(localStorage.getItem('bt_skins')) || ['red'];
@@ -112,11 +74,6 @@ function renderShop() {
     });
 }
 
-function toggleLightDark() {
-    const currentMode = localStorage.getItem('bt_mode') || 'dark';
-    localStorage.setItem('bt_mode', currentMode === 'dark' ? 'light' : 'dark');
-    updateUI();
-}
 
 window.onload = updateUI;
 window.onfocus = updateUI;

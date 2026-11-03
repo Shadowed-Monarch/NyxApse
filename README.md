@@ -31,12 +31,14 @@ Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen
 * **Two Currencies:** Each win earns Brain Power (level × 5 up to level 30, then slower), which sets your rank and never goes down, plus coins (5 + level, up to 55) that you spend in the shop.
 * **Skin Shop:** 10 accent themes bought with 🪙 coins, from Blue (100) to the **Legendary Rainbow Skin** (10,000). Buying skins never lowers your rank.
 * **Light / Dark Mode:** Toggle from the home screen; applies to every game.
-* **Focus Sound:** Optional low-volume brown noise toggle.
 * **Daily Streak & Calendar:** Win a level each day to keep your streak. Your first win of the day pays bonus coins (streak days × 10, max 70), and a calendar on the home screen shows every day you played.
 * **Stats:** Streak, total wins, time trained and level per game on the home screen.
 * **Level Select:** Use ◀ ▶ in any game to replay lower levels.
 * **Save Tools:** Export, import or reset your save code from the Skin Shop.
 * **Anti-Tamper:** Progress is signed, so edits made in browser DevTools are detected and undone. This is a deterrent, not real security, since everything runs on the player's device.
+* **Settings (⚙️ on every page):** focus sound (brown, pink or white, with volume), sound effects, vibration, theme (dark, light or auto), a Minimal style plus switches for glow, grain, confetti, large text and compact layout.
+* **Game Timers:** change the seconds for each game within a safe range. More time is easier, so wins pay a little less; less time pays more.
+* **Profile & Menu:** pick a nickname and avatar on first launch, see your stats in your profile, and use the menu dock on the home screen.
 * **Sound:** Adjustable-volume brown-noise focus sound, plus win/lose sounds and vibration.
 * **Math Variety:** Subtraction unlocks at level 4, multiplication at level 8.
 * **Focus Buttons:** Tap color buttons instead of typing.
@@ -53,7 +55,7 @@ Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen
 * **Responsive UI:** Works on desktop and mobile (mouse and touch).
 
 ## 🔊 About the Focus Sound
-The speaker button on the home screen plays **brown noise**: a deep, soft rumble, a bit like distant rain or a waterfall. White noise is brighter and hissier, like static.
+The focus sound (⚙️ Settings → Sound) is **brown noise** by default, and you can switch to pink or white. It keeps playing as you move between pages. Brown noise is a deep, soft rumble, a bit like distant rain or a waterfall. White noise is brighter and hissier, like static.
 
 Which one is better comes down to taste. Research on background noise and focus is mixed, almost all of it used white noise, and no solid study shows brown noise beating white. Quieter is usually better than louder. Phone speakers play deep sounds weakly, so brown noise sounds thinner there, and headphones give the full effect. The sound is only a relaxing background, not a medical tool.
 

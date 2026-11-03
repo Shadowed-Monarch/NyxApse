@@ -14,7 +14,7 @@ let selectedLvl = parseInt(localStorage.getItem('bt_unlocked_aim')) || 1;
                 this.goal = Math.min(20, 15 + Math.floor(selectedLvl / 20)); // 15 pops, rising to 20 at level 100
 
                 // FIXED: Base time reduces slightly as levels go up (30s down to min 15s)
-                this.time = Math.max(20, 30 - Math.floor(selectedLvl / 3));
+                this.time = BT.time('aim', Math.max(20, 30 - Math.floor(selectedLvl / 3)));
 
                 this.isPlaying = true;
                 document.getElementById('count').innerText = "0";

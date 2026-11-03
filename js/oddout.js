@@ -13,7 +13,7 @@ class OddGame {
     start() {
         document.getElementById('start-btn').style.display = 'none';
         const bc = document.getElementById('btn-container'); bc.style.display = 'none'; bc.innerHTML = '';
-        this.found = 0; this.time = 30; this.isPlaying = true;
+        this.found = 0; this.time = BT.time('odd', 30); this.isPlaying = true;
         document.getElementById('count').innerText = '0';
         document.getElementById('time').innerText = this.time;
         this.round();
