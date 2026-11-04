@@ -33,7 +33,7 @@ const BT = {};
  }
  verify();
  if (LS.getItem('bt_wallet') === null) BT.raw('bt_wallet', 500);   // one-time starter coins
- BT.TIMERS = {math: {base: 30, min: -10, max: 20}, dots: {base: 8, min: -3, max: 10}, memory: {base: 3, min: -1, max: 3}, focus: {base: 30, min: -10, max: 20}, aim: {base: 25, min: -10, max: 20}, reflex: {base: 20, min: -10, max: 20, inverse: true}, odd: {base: 30, min: -10, max: 20}};
+ BT.TIMERS = {math: {base: 30, min: -10, max: 20}, dots: {base: 9, min: -3, max: 10}, memory: {base: 3, min: -1, max: 3}, focus: {base: 30, min: -10, max: 20}, aim: {base: 25, min: -10, max: 20}, reflex: {base: 20, min: -10, max: 20, inverse: true}, odd: {base: 30, min: -10, max: 20}};
  BT.off = k => { const d = BT.TIMERS[k]; if (!d) return 0; const o = Number(((btCfg().timers) || {})[k]) || 0; return Math.max(d.min, Math.min(d.max, Math.round(o))); };
  BT.time = (k, base) => Math.max(3, Math.round(base + BT.off(k)));
  BT.timeFactor = k => { const d = BT.TIMERS[k]; if (!d) return 1; const o = BT.off(k); return Math.max(0.5, Math.min(1.5, d.inverse ? (d.base + o) / d.base : d.base / (d.base + o))); };
@@ -108,7 +108,7 @@ const BT = {};
     if (pr.n >= dc.need) { BT.raw('bt_daily_done', tday); BT.raw('bt_daily_total', num('bt_daily_total') + 1); BT.markDay(2); gain += 60; msgs.push('🎯 Daily challenge complete! +60 🪙'); }
     else msgs.push('🎯 Daily challenge ' + pr.n + '/' + dc.need);
    }
-   BT.raw('bt_wallet', num('bt_wallet') + gain); BT.lastCoins = gain;
+   BT.raw('bt_wallet', num('bt_wallet') + gain); BT.lastCoins = gain; BT.lastTF = tf;
    if (KEY && BT.t0 && BT.off(KEY) === 0) {
     const sec = Math.round((Date.now() - BT.t0) / 100) / 10; let pb;
     try { pb = JSON.parse(LS.getItem('bt_pb')) || {}; } catch (e) { pb = {}; }
@@ -205,7 +205,7 @@ const BT = {};
   } else {
    h.textContent = pick(WIN_MSGS, 'w');
    try { sessionStorage.removeItem('bt_ls_' + KEY + '_' + lvl); } catch (e) {}
-   p.textContent = '+' + (BT.lastReward || BT.reward(lvl)) + ' BP · +' + (BT.lastCoins || 0) + ' 🪙 · Level ' + lvl + ' cleared' + (BT.newBest ? ' · ⚡ New best time!' : '');
+   p.textContent = '+' + (BT.lastReward || BT.reward(lvl)) + ' BP · +' + (BT.lastCoins || 0) + ' 🪙 · Level ' + lvl + ' cleared' + (BT.lastTF && BT.lastTF !== 1 ? ' · timer ×' + BT.lastTF.toFixed(2) : '') + (BT.newBest ? ' · ⚡ New best time!' : '');
   }
   h.after(p);
  }
@@ -277,7 +277,7 @@ const BT = {};
   // Focus game: tap-to-answer color buttons (better on phones)
   const ans = document.getElementById('ans'), ia = document.getElementById('input-area');
   if (ans && ia && typeof colorList !== 'undefined') {
-   ans.setAttribute('inputmode', 'none');
+   ans.setAttribute('inputmode', 'none'); document.documentElement.classList.add('bt-colors');
    const row = document.createElement('div');
    row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px;width:95%;max-width:800px';
    colorList.forEach(c => {
