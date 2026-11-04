@@ -20,6 +20,7 @@
 
     <header>
         <div class="logo-area">
+            <button id="menu-btn" class="header-btn" onclick="NX.menu()" aria-label="Menu">☰</button>
             <img src="logo.png" alt="" class="site-logo">
             <span>Nyx<span style="color:var(--accent)">Apse</span></span>
         </div>
@@ -103,11 +104,15 @@
         <button onclick="toggleShop()" style="padding:10px 20px; cursor:pointer; background:var(--text); color:var(--bg); border:none; border-radius:5px;">CLOSE</button>
     </div>
 
+    <div id="dock-bg" onclick="NX.menu()"></div>
     <nav id="dock" aria-label="Menu">
+        <div class="dock-brand">NyxApse</div>
         <button onclick="NX.go('home')"><span>🏠</span>Home</button>
         <button onclick="NX.go('games')"><span>🎮</span>Games</button>
         <button onclick="NX.go('shop')"><span>🛒</span>Shop</button>
-        <button onclick="NX.go('ranks')"><span>🏆</span>Ranks</button>
+        <button onclick="NX.go('ranks')"><span>🏆</span>Leaderboard</button>
+        <button onclick="NX.go('profile')"><span>👤</span>Profile</button>
+        <button onclick="NX.go('settings')"><span>⚙️</span>Settings</button>
         <button onclick="NX.go('about')"><span>ℹ️</span>About</button>
     </nav>
 

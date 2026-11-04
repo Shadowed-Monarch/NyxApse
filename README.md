@@ -36,9 +36,9 @@ Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen
 * **Level Select:** Use ◀ ▶ in any game to replay lower levels.
 * **Save Tools:** Export, import or reset your save code from the Skin Shop.
 * **Anti-Tamper:** Progress is signed, so edits made in browser DevTools are detected and undone. This is a deterrent, not real security, since everything runs on the player's device.
-* **Settings (⚙️ on every page):** focus sound (brown, pink or white, with volume), sound effects, vibration, theme (dark, light or auto), a Minimal style plus switches for glow, grain, confetti, large text and compact layout.
+* **Settings (⚙️ on every page):** focus sound (brown, pink or white, with volume), sound effects, vibration, theme (dark, light or auto), a Minimal black-and-white style (flat, no glow) plus switches for glow, grain, confetti, large text and compact layout.
 * **Game Timers:** change the seconds for each game within a safe range. More time is easier, so wins pay a little less; less time pays more.
-* **Profile & Menu:** pick a nickname and avatar on first launch, see your stats in your profile, and use the menu dock on the home screen.
+* **Profile & Menu:** pick a nickname and avatar on first launch, see your stats in your profile, and use the menu on the left of the home screen.
 * **Sound:** Adjustable-volume brown-noise focus sound, plus win/lose sounds and vibration.
 * **Math Variety:** Subtraction unlocks at level 4, multiplication at level 8.
 * **Focus Buttons:** Tap color buttons instead of typing.
