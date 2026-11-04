@@ -1,6 +1,6 @@
 # 🧠 NyxApse
 
-**NyxApse** (pronounced *NIK-saps*) is a web-based mental training suite designed to sharpen your cognitive reflexes, mathematical speed, focus, and memory. Build your **Brain Power**, climb the ranks, and master your mental discipline.
+**NyxApse** is a web-based mental training suite designed to sharpen your cognitive reflexes, mathematical speed, focus, and memory. Build your **Brain Power**, climb the ranks, and master your mental discipline.
 
 **[🚀 Play NyxApse Now](https://shadowed-monarch.github.io/NyxApse/)**
 
