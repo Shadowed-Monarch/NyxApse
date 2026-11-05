@@ -34,6 +34,7 @@ const BT = {};
  // ---------- Earnings ledger: every reward is a chained log entry, and your totals must match the log ----------
  const LEDGER_MAX = 200, GKEYS = ['math', 'dots', 'memory', 'focus', 'aim', 'reflex', 'odd'];
  BT.SKINS = {red: 0, blue: 100, yellow: 250, green: 500, cyan: 800, pink: 1200, purple: 1800, orange: 2500, gold: 4000, rainbow: 10000};
+ BT.BONUS = {math: 10, dots: 14, focus: 10, aim: 20, odd: 10, reflex: 0};   // most extra seconds a round can legitimately earn
  BT.MIN_S = {math: 5, dots: 1.5, memory: 2.5, focus: 4, aim: 3, odd: 3};   // fastest believable clear, in seconds
  const lget = () => { try { return JSON.parse(LS.getItem('bt_ledger')) || []; } catch (e) { return []; } };
  const lbase = () => { try { return JSON.parse(LS.getItem('bt_lbase')); } catch (e) { return null; } };
@@ -377,12 +378,18 @@ const BT = {};
    d.parentElement.append(hb('?', 'How to play', () => showHelp(key)), hb('⏸', 'Pause', () => { if (typeof game !== 'undefined' && game.isPlaying) pause(true); }), pbEl);
    const showPB = () => { let p; try { p = JSON.parse(LS.getItem('bt_pb')) || {}; } catch (e) { p = {}; } const v = (p[key] || {})[selectedLvl]; pbEl.textContent = v ? '⚡ Best: ' + v + 's' : ''; };
    showPB(); si(showPB, 500);
-   if (typeof game !== 'undefined') { const s0 = game.start.bind(game); game.start = () => { BT.t0 = Date.now(); s0(); };
+   if (typeof game !== 'undefined') { const s0 = game.start.bind(game); game.start = () => {
+     BT.t0 = Date.now(); BT.active = 0; clearInterval(BT._ai);
+     BT._ai = setInterval(() => { BT.active += 0.25; }, 250);              // counts only time the game is really running (not paused, not hidden)
+     s0();
+     const t0 = typeof game.time === 'number' ? game.time : game.timeLeft;   // the seconds the game gave at the start
+     BT.maxActive = (typeof t0 === 'number' && BT.BONUS[KEY] !== undefined) ? t0 + BT.BONUS[KEY] + 4 : Infinity;
+    };
     const e0 = game.end.bind(game);
     game.end = (res, ...a) => {
      const sec = BT.t0 ? (Date.now() - BT.t0) / 1000 : 0, need = KEY === 'reflex' ? BT.time('reflex', 20) - 3 : (BT.MIN_S[KEY] || 3);
-     BT.ctx = {win: res === 'win' && sec >= need && typeof selectedLvl !== 'undefined', key: KEY, lvl: typeof selectedLvl !== 'undefined' ? selectedLvl : 1, sec};
-     try { return e0(res, ...a); } finally { BT.ctx = null; }
+     BT.ctx = {win: res === 'win' && sec >= need && (BT.active || 0) <= (BT.maxActive || Infinity) && typeof selectedLvl !== 'undefined', key: KEY, lvl: typeof selectedLvl !== 'undefined' ? selectedLvl : 1, sec};
+     try { return e0(res, ...a); } finally { BT.ctx = null; clearInterval(BT._ai); }
     };
    }
    if (!LS.getItem('bt_seen_' + key)) showHelp(key);
