@@ -12,14 +12,14 @@ const BT = {};
  const FILES = {math:'math.html',dots:'dots.html',memory:'memory.html',focus:'stroop.html',aim:'aim.html',reflex:'avoid.html',odd:'oddout.html'};
  const KEY = PAGES[location.pathname.split('/').pop()];
  BT.daily = () => { let h = 0; for (const ch of BT.today()) h = (h * 31 + ch.charCodeAt(0)) >>> 0; const k = Object.keys(BT_GAMES); return {key: k[h % k.length], need: 2 + (h >> 3) % 3}; };
- const SALT = 'bt1-Shadowed-7f3a', PROT = k => /^bt_(coins|unlocked_.+|skins|current_skin|wins|ach|streak|daily_total|pb|wallet|cal|best_streak|daily_prog)$/.test(k);
+ const SALT = 'bt1-Shadowed-7f3a', PROT = k => /^bt_(coins|unlocked_.+|skins|current_skin|wins|ach|streak|daily_total|pb|wallet|cal|best_streak|daily_prog|ledger|lbase|lanchor)$/.test(k);
  const hash = s => { let h1 = 0xdeadbeef, h2 = 0x41c6ce57; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36); };
  let noSign = false, tamperMsg = '';
  const snap = () => JSON.stringify(Object.fromEntries(Object.keys(LS).filter(PROT).sort().map(k => [k, LS.getItem(k)])));
  const sign = () => { const s = snap(); rawSet.call(LS, 'bt_sig', hash(SALT + s)); rawSet.call(LS, 'bt_bk', s); rawSet.call(LS, 'bt_bksig', hash(SALT + 'bk' + s)); };
  BT.raw = (k, v) => { rawSet.call(LS, k, v); if (!noSign && PROT(k)) sign(); };
  // Anti-tamper: progress is signed; edits made in DevTools are detected and undone
- function verify() {
+ function verifySig() {
   const sig = LS.getItem('bt_sig'), s = snap();
   if (!sig && !LS.getItem('bt_bksig')) { if (s !== '{}') sign(); return; }   // fresh or pre-update save
   if (hash(SALT + s) === sig) return;
@@ -31,8 +31,49 @@ const BT = {};
   tamperMsg = ok ? '⚠️ Save was edited outside the game. Your last real progress was restored.' : '⚠️ Save was edited outside the game, so progress was reset.';
   if (document.body) { toast(tamperMsg); tamperMsg = ''; }
  }
+ // ---------- Earnings ledger: every reward is a chained log entry, and your totals must match the log ----------
+ const LEDGER_MAX = 200, GKEYS = ['math', 'dots', 'memory', 'focus', 'aim', 'reflex', 'odd'];
+ BT.SKINS = {red: 0, blue: 100, yellow: 250, green: 500, cyan: 800, pink: 1200, purple: 1800, orange: 2500, gold: 4000, rainbow: 10000};
+ BT.MIN_S = {math: 5, dots: 1.5, memory: 2.5, focus: 4, aim: 3, odd: 3};   // fastest believable clear, in seconds
+ const lget = () => { try { return JSON.parse(LS.getItem('bt_ledger')) || []; } catch (e) { return []; } };
+ const lbase = () => { try { return JSON.parse(LS.getItem('bt_lbase')); } catch (e) { return null; } };
+ const lh = (prev, body) => hash(SALT + 'L' + prev + JSON.stringify(body));
+ function derive(base, L) {
+  const d = {bp: base.bp, c: base.c, w: base.w, u: Object.assign({}, base.u)};
+  L.forEach(e => { if (e.t === 'win') { d.bp += e.bp; d.c += e.c; d.w++; d.u[e.g] = Math.max(d.u[e.g] || 1, e.l + 1); } else d.c += e.c; });
+  return d;
+ }
+ function chainBreak(L, anchor) { let prev = anchor; for (let i = 0; i < L.length; i++) { const {h, ...body} = L[i]; if (lh(prev, body) !== h) return i; prev = h; } return -1; }
+ function ledgerAdd(e) {
+  let L = lget(), base = lbase(), anchor = LS.getItem('bt_lanchor') || '';
+  const prev = L.length ? L[L.length - 1].h : anchor, body = Object.assign({}, e, {ts: Date.now()});
+  L.push(Object.assign({}, body, {h: lh(prev, body)}));
+  if (L.length > LEDGER_MAX) { const old = L.splice(0, 50); base = derive(base, old); anchor = old[old.length - 1].h; BT.raw('bt_lbase', JSON.stringify(base)); BT.raw('bt_lanchor', anchor); }
+  BT.raw('bt_ledger', JSON.stringify(L));
+ }
+ const bonus = (c, why) => { ledgerAdd({t: 'bonus', why, c}); BT.raw('bt_wallet', num('bt_wallet') + c); };
+ function spend(c) { ledgerAdd({t: 'buy', c: -c}); BT.raw('bt_wallet', num('bt_wallet') - c); BT.lastSpend = {amt: c, t: Date.now()}; }
+ function checkLedger() {
+  let base = lbase(), L = lget(), flagged = false;
+  if (!base) {   // first run (or a save from before the ledger): today's totals become the starting point
+   const w0 = LS.getItem('bt_wallet') === null ? 500 : num('bt_wallet'), u = {};
+   GKEYS.forEach(k => { u[k] = num('bt_unlocked_' + k) || 1; });
+   base = {bp: num('bt_coins'), c: w0, w: num('bt_wins'), u};
+   noSign = true; rawSet.call(LS, 'bt_lbase', JSON.stringify(base)); rawSet.call(LS, 'bt_lanchor', hash(SALT + 'G' + JSON.stringify(base)));
+   rawSet.call(LS, 'bt_ledger', '[]'); rawSet.call(LS, 'bt_wallet', String(w0)); noSign = false; sign(); return;
+  }
+  const bad = chainBreak(L, LS.getItem('bt_lanchor') || '');
+  noSign = true;
+  if (bad >= 0) { L = L.slice(0, bad); rawSet.call(LS, 'bt_ledger', JSON.stringify(L)); flagged = true; }
+  const d = derive(base, L);
+  const fix = (k, val, cur) => { if (cur === val || (val === 1 && LS.getItem(k) === null)) return; if (cur > val) flagged = true; rawSet.call(LS, k, String(val)); };   // too high = edited, too low = heal
+  fix('bt_coins', d.bp, num('bt_coins')); fix('bt_wallet', d.c, num('bt_wallet')); fix('bt_wins', d.w, num('bt_wins'));
+  GKEYS.forEach(k => fix('bt_unlocked_' + k, d.u[k] || 1, num('bt_unlocked_' + k) || 1));
+  noSign = false; sign();
+  if (flagged) { tamperMsg = '⚠️ Some numbers did not match your play history, so they were set back.'; if (document.body) { toast(tamperMsg); tamperMsg = ''; } }
+ }
+ function verify() { verifySig(); checkLedger(); }
  verify();
- if (LS.getItem('bt_wallet') === null) BT.raw('bt_wallet', 500);   // one-time starter coins
  BT.TIMERS = {math: {base: 30, min: -10, max: 20}, dots: {base: 9, min: -3, max: 10}, memory: {base: 3, min: -1, max: 3}, focus: {base: 30, min: -10, max: 20}, aim: {base: 25, min: -10, max: 20}, reflex: {base: 20, min: -10, max: 20, inverse: true}, odd: {base: 30, min: -10, max: 20}};
  BT.off = k => { const d = BT.TIMERS[k]; if (!d) return 0; const o = Number(((btCfg().timers) || {})[k]) || 0; return Math.max(d.min, Math.min(d.max, Math.round(o))); };
  BT.time = (k, base) => Math.max(3, Math.round(base + BT.off(k)));
@@ -78,55 +119,68 @@ const BT = {};
 
  // Any increase of bt_coins = a win: sound, stats, daily bonus, rank-up
  let busy = false;
- Storage.prototype.setItem = function (k, v) {
-  const prot = this === LS && PROT(k);
-  if (prot) verify();
-  const old = k === 'bt_coins' && this === LS ? num('bt_coins') : 0;
-  rawSet.call(this, k, v);
-  if (prot) sign();
-  if (k === 'bt_coins' && !busy && +v > old) {
-   busy = true;
-   BT.raw('bt_wins', num('bt_wins') + 1);
-   beep([[523,.12],[659,.12],[784,.25]]); buzz(60);
-   let bp = +v, msgs = [];
-   if (KEY && typeof selectedLvl !== 'undefined' && bp - old === selectedLvl * 5) bp = old + BT.reward(selectedLvl);
-   const tf = KEY ? BT.timeFactor(KEY) : 1;                              // more time = easier = smaller reward
-   if (tf !== 1) bp = old + Math.round((bp - old) * tf);
-   const lvl0 = typeof selectedLvl !== 'undefined' ? selectedLvl : 1, tday = BT.today(), lday = LS.getItem('bt_last_day');
-   let gain = Math.round((5 + Math.min(lvl0, 50)) * tf);                                    // coins for this win
-   if (lday !== tday) {                                                  // streak: only days with a win count
-    const yd = new Date(Date.now() - 864e5).toDateString(), sk = lday === yd ? num('bt_streak') + 1 : 1;
-    BT.raw('bt_streak', sk); BT.raw('bt_last_day', tday); if (sk > num('bt_best_streak')) BT.raw('bt_best_streak', sk);
-   }
-   BT.markDay(1);
-   if (LS.getItem('bt_bonus_date') !== tday) { BT.raw('bt_bonus_date', tday); const b = Math.min(BT.streak(), 7) * 10; gain += b; msgs.push('🔥 Streak bonus +' + b + ' 🪙'); }
-   const dc = BT.daily();                                                // daily challenge: win the chosen game N times today
-   if (KEY && KEY === dc.key && LS.getItem('bt_daily_done') !== tday) {
-    let pr; try { pr = JSON.parse(LS.getItem('bt_daily_prog')) || {}; } catch (e) { pr = {}; }
-    if (pr.d !== tday) pr = {d: tday, n: 0};
-    pr.n++; BT.raw('bt_daily_prog', JSON.stringify(pr));
-    if (pr.n >= dc.need) { BT.raw('bt_daily_done', tday); BT.raw('bt_daily_total', num('bt_daily_total') + 1); BT.markDay(2); gain += 60; msgs.push('🎯 Daily challenge complete! +60 🪙'); }
-    else msgs.push('🎯 Daily challenge ' + pr.n + '/' + dc.need);
-   }
-   BT.raw('bt_wallet', num('bt_wallet') + gain); BT.lastCoins = gain; BT.lastTF = tf;
-   if (KEY && BT.t0 && BT.off(KEY) === 0) {
-    const sec = Math.round((Date.now() - BT.t0) / 100) / 10; let pb;
-    try { pb = JSON.parse(LS.getItem('bt_pb')) || {}; } catch (e) { pb = {}; }
-    pb[KEY] = pb[KEY] || {}; const prev = pb[KEY][selectedLvl];
-    if (!prev || sec < prev) { pb[KEY][selectedLvl] = sec; BT.raw('bt_pb', JSON.stringify(pb)); if (prev) msgs.push('⚡ New best: ' + sec + 's'); }
-    BT.t0 = 0;
-   }
-   if (bp !== +v) {
-    BT.raw('bt_coins', bp);
-    if (typeof game !== 'undefined' && 'brains' in game) { game.brains = bp; game.updateUI && game.updateUI(); }
-   }
-   msgs.forEach((m, i) => setTimeout(() => toast(m), i * 1200));
-   BT.lastReward = bp - old; BT.newBest = msgs.some(m => m.includes('New best'));
-   confetti(); checkAch();
-   const a = BT.rank(old), c = BT.rank(bp);
-   if (a !== c) setTimeout(() => toast('🎉 Rank up: ' + c.icon + ' ' + c.name + '!'), 600 + msgs.length * 1200);
-   busy = false;
+ BT.ctx = null;
+ const reject = () => { BT.blocked = (BT.blocked || 0) + 1; if (document.body) toast('⚠️ That change was not earned in a game, so it was undone.'); };
+ function onWin(ctx) {
+  if (ctx.lvl > (num('bt_unlocked_' + KEY) || 1)) { reject(); return; }   // you can't win a level you haven't reached
+  busy = true;
+  const lvl = ctx.lvl, old = num('bt_coins'), tf = BT.timeFactor(KEY), tday = BT.today(), lday = LS.getItem('bt_last_day'), msgs = [];
+  const bpGain = Math.round(BT.reward(lvl) * tf);                        // the game never decides the reward, this code does
+  let gain = Math.round((5 + Math.min(lvl, 50)) * tf);
+  if (lday !== tday) {                                                   // streak: only days with a win count
+   const yd = new Date(Date.now() - 864e5).toDateString(), sk = lday === yd ? num('bt_streak') + 1 : 1;
+   BT.raw('bt_streak', sk); BT.raw('bt_last_day', tday); if (sk > num('bt_best_streak')) BT.raw('bt_best_streak', sk);
   }
+  BT.markDay(1);
+  if (LS.getItem('bt_bonus_date') !== tday) { BT.raw('bt_bonus_date', tday); const b = Math.min(BT.streak(), 7) * 10; gain += b; msgs.push('🔥 Streak bonus +' + b + ' 🪙'); }
+  const dc = BT.daily();                                                 // daily challenge: win the chosen game N times today
+  if (KEY === dc.key && LS.getItem('bt_daily_done') !== tday) {
+   let pr; try { pr = JSON.parse(LS.getItem('bt_daily_prog')) || {}; } catch (e) { pr = {}; }
+   if (pr.d !== tday) pr = {d: tday, n: 0};
+   pr.n++; BT.raw('bt_daily_prog', JSON.stringify(pr));
+   if (pr.n >= dc.need) { BT.raw('bt_daily_done', tday); BT.raw('bt_daily_total', num('bt_daily_total') + 1); BT.markDay(2); gain += 60; msgs.push('🎯 Daily challenge complete! +60 🪙'); }
+   else msgs.push('🎯 Daily challenge ' + pr.n + '/' + dc.need);
+  }
+  const sec = Math.round(ctx.sec * 10) / 10;
+  if (BT.off(KEY) === 0) {                                               // best times only count at the normal timer
+   let pb; try { pb = JSON.parse(LS.getItem('bt_pb')) || {}; } catch (e) { pb = {}; }
+   pb[KEY] = pb[KEY] || {}; const prev = pb[KEY][lvl];
+   if (!prev || sec < prev) { pb[KEY][lvl] = sec; BT.raw('bt_pb', JSON.stringify(pb)); if (prev) msgs.push('⚡ New best: ' + sec + 's'); }
+  }
+  BT.t0 = 0;
+  ledgerAdd({t: 'win', g: KEY, l: lvl, s: sec, bp: bpGain, c: gain});     // the log entry comes first, the totals follow it
+  const bp = old + bpGain;
+  BT.raw('bt_coins', bp); BT.raw('bt_wallet', num('bt_wallet') + gain); BT.raw('bt_wins', num('bt_wins') + 1);
+  if ((num('bt_unlocked_' + KEY) || 1) === lvl) BT.raw('bt_unlocked_' + KEY, lvl + 1);
+  BT.lastCoins = gain; BT.lastTF = tf; BT.lastReward = bpGain; BT.newBest = msgs.some(m => m.includes('New best'));
+  if (typeof game !== 'undefined' && 'brains' in game) { game.brains = bp; game.updateUI && game.updateUI(); }
+  beep([[523,.12],[659,.12],[784,.25]]); buzz(60);
+  msgs.forEach((m, i) => setTimeout(() => toast(m), i * 1200));
+  confetti(); checkAch();
+  const a = BT.rank(old), c = BT.rank(bp);
+  if (a !== c) setTimeout(() => toast('🎉 Rank up: ' + c.icon + ' ' + c.name + '!'), 600 + msgs.length * 1200);
+  busy = false;
+ }
+ Storage.prototype.setItem = function (k, v) {
+  if (this !== LS || !PROT(k)) return rawSet.call(this, k, v);          // settings, profile and so on are stored normally
+  verify();                                                              // undo any outside edit first
+  const ctx = BT.ctx;
+  if (k === 'bt_coins') { if (ctx && ctx.win && !busy) onWin(ctx); else reject(); return; }
+  if (k.indexOf('bt_unlocked_') === 0) {
+   const g = k.slice(12), cur = num(k) || 1;
+   if (!(ctx && ctx.win && g === ctx.key && Number(v) === ctx.lvl + 1 && (cur === ctx.lvl || cur === ctx.lvl + 1))) reject();   // allowed: the level comes from the win entry below
+   return;
+  }
+  if (k === 'bt_wallet') { const nv = Number(v), cur = num('bt_wallet'); if (Number.isInteger(nv) && nv >= 0 && nv < cur) spend(cur - nv); else reject(); return; }   // only spending
+  let own; try { own = JSON.parse(LS.getItem('bt_skins')) || ['red']; } catch (e) { own = ['red']; }
+  if (k === 'bt_skins') {
+   let nl; try { nl = JSON.parse(v); } catch (e) { nl = null; }
+   const add = nl && Array.isArray(nl) ? nl.filter(x => !own.includes(x)) : [];
+   if (nl && nl.length === own.length + 1 && own.every(x => nl.includes(x)) && add.length === 1 && BT.SKINS[add[0]] !== undefined && BT.lastSpend && Date.now() - BT.lastSpend.t < 4000 && BT.lastSpend.amt >= BT.SKINS[add[0]]) { BT.lastSpend.amt -= BT.SKINS[add[0]]; BT.raw(k, v); } else reject();
+   return;
+  }
+  if (k === 'bt_current_skin') { if (own.includes(v)) BT.raw(k, v); else reject(); return; }
+  reject();                                                              // everything else can only be changed by the game's own code
  };
 
  function confetti() {
@@ -157,7 +211,7 @@ const BT = {};
  function checkAch() {
   let got; try { got = JSON.parse(LS.getItem('bt_ach')) || []; } catch (e) { got = []; }
   const fresh = ACH.filter(a => !got.includes(a.id) && a.test());
-  if (fresh.length) { BT.raw('bt_ach', JSON.stringify(got.concat(fresh.map(a => a.id)))); BT.raw('bt_wallet', num('bt_wallet') + 25 * fresh.length); fresh.forEach((a, i) => setTimeout(() => toast('🏅 Achievement: ' + a.icon + ' ' + a.name + ' +25 🪙'), 2500 + i * 1200)); }
+  if (fresh.length) { BT.raw('bt_ach', JSON.stringify(got.concat(fresh.map(a => a.id)))); bonus(25 * fresh.length, 'badge'); fresh.forEach((a, i) => setTimeout(() => toast('🏅 Achievement: ' + a.icon + ' ' + a.name + ' +25 🪙'), 2500 + i * 1200)); }
   return got.concat(fresh.map(a => a.id));
  }
  BT.checkAch = checkAch; BT.achTotal = ACH.length;
@@ -323,7 +377,14 @@ const BT = {};
    d.parentElement.append(hb('?', 'How to play', () => showHelp(key)), hb('⏸', 'Pause', () => { if (typeof game !== 'undefined' && game.isPlaying) pause(true); }), pbEl);
    const showPB = () => { let p; try { p = JSON.parse(LS.getItem('bt_pb')) || {}; } catch (e) { p = {}; } const v = (p[key] || {})[selectedLvl]; pbEl.textContent = v ? '⚡ Best: ' + v + 's' : ''; };
    showPB(); si(showPB, 500);
-   if (typeof game !== 'undefined') { const s0 = game.start.bind(game); game.start = () => { BT.t0 = Date.now(); s0(); }; }
+   if (typeof game !== 'undefined') { const s0 = game.start.bind(game); game.start = () => { BT.t0 = Date.now(); s0(); };
+    const e0 = game.end.bind(game);
+    game.end = (res, ...a) => {
+     const sec = BT.t0 ? (Date.now() - BT.t0) / 1000 : 0, need = KEY === 'reflex' ? BT.time('reflex', 20) - 3 : (BT.MIN_S[KEY] || 3);
+     BT.ctx = {win: res === 'win' && sec >= need && typeof selectedLvl !== 'undefined', key: KEY, lvl: typeof selectedLvl !== 'undefined' ? selectedLvl : 1, sec};
+     try { return e0(res, ...a); } finally { BT.ctx = null; }
+    };
+   }
    if (!LS.getItem('bt_seen_' + key)) showHelp(key);
   }
   // Answer-box pages (Math, Focus): pin the layout to the part of the screen above the keyboard
