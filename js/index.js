@@ -1,15 +1,7 @@
 /* index.js - logic for the home screen */
-const colors = [
-    {id:'red', hex:'#ff0000', cost:0}, {id:'blue', hex:'#0088ff', cost:100},
-    {id:'yellow', hex:'#ffcc00', cost:250}, {id:'green', hex:'#00ff00', cost:500},
-    {id:'cyan', hex:'#00ffff', cost:800}, {id:'pink', hex:'#ff00ff', cost:1200},
-    {id:'purple', hex:'#9900ff', cost:1800}, {id:'orange', hex:'#ff6600', cost:2500},
-    {id:'gold', hex:'#ffd700', cost:4000}, {id:'rainbow', hex:'linear-gradient(45deg, #f00, #ff0, #0f0, #0ff, #90f)', cost:10000}
-];
-
 const ranks = BT_RANKS;
 
-let userBrains, unlocked, currentSkin, wallet;
+let userBrains, unlocked, currentSkin, wallet, previewId = null;
 
 function updateUI() {
     userBrains = parseInt(localStorage.getItem('bt_coins')) || 0;
@@ -32,46 +24,54 @@ function updateUI() {
     let progress = nextRank.name === "MAX" ? 100 : ((userBrains - currentRank.min) / (nextRank.min - currentRank.min)) * 100;
     document.getElementById('rank-progress').style.width = Math.min(progress, 100) + "%";
 
-    if(currentSkin === 'rainbow') {
-        document.body.classList.add('rainbow-active');
-    } else {
-        document.body.classList.remove('rainbow-active');
-        const skinObj = colors.find(c => c.id === currentSkin) || colors[0];
-        document.documentElement.style.setProperty('--accent', skinObj.hex);
-    }
+    if (typeof applyTheme === 'function' && !previewId) applyTheme();
 }
 
 function toggleShop() {
     const overlay = document.getElementById('shop-overlay');
-    overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
-    if(overlay.style.display === 'flex') renderShop();
+    const open = overlay.style.display !== 'flex';
+    overlay.style.display = open ? 'flex' : 'none';
+    previewId = null; applyTheme();                      // closing or opening always drops any preview
+    if (open) renderShop();
 }
 
+const swatch = s => s.anim ? 'linear-gradient(135deg, ' + s.anim.join(',') + ')' : s.hex;
+
 function renderShop() {
+    const own = JSON.parse(localStorage.getItem('bt_skins')) || ['red'];
+    const cur = localStorage.getItem('bt_current_skin') || 'red';
+    wallet = parseInt(localStorage.getItem('bt_wallet')) || 0;
     const sw = document.getElementById('shop-wallet'); if (sw) sw.innerText = '🪙 ' + wallet + ' coins';
     const grid = document.getElementById('shop-grid');
     grid.innerHTML = '';
-    colors.forEach(c => {
-        const el = document.createElement('div');
-        el.className = 'shop-item';
-        el.style.background = c.hex;
-        if(unlocked.includes(c.id)) {
-            if(currentSkin === c.id) el.classList.add('selected');
-            el.onclick = () => { localStorage.setItem('bt_current_skin', c.id); updateUI(); renderShop(); };
-        } else {
-            el.innerHTML = `<span style="font-size:10px; font-weight:bold; color:black">${c.cost}</span>`;
-            el.style.opacity = "0.7";
-            el.onclick = () => {
-                if(wallet >= c.cost) {
-                    localStorage.setItem('bt_wallet', wallet - c.cost); unlocked.push(c.id);
-                    localStorage.setItem('bt_skins', JSON.stringify(unlocked)); BT.confetti(); BT.checkAch();
-                    localStorage.setItem('bt_current_skin', c.id);
-                    updateUI(); renderShop();
-                } else alert("Not enough coins! Win levels and daily challenges to earn more.");
-            };
-        }
+    BT_SKIN_LIST.forEach(s => {
+        const el = document.createElement('button');
+        el.type = 'button'; el.className = 'shop-item'; el.title = s.name; el.setAttribute('aria-label', s.name);
+        el.style.background = swatch(s);
+        if (cur === s.id) el.classList.add('selected');
+        if (previewId === s.id) el.classList.add('previewing');
+        if (!own.includes(s.id)) el.innerHTML = s.cost === Infinity ? '<span class="price">🔒</span>' : '<span class="price">' + s.cost + '</span>';
+        el.onclick = () => { previewId = s.id; applySkin(s.id); renderShop(); };      // tapping only previews, it never buys
         grid.appendChild(el);
     });
+    const id = previewId || cur, s = BT_SKIN_LIST.find(x => x.id === id), owned = own.includes(id), info = document.getElementById('shop-info');
+    let action = '';
+    if (owned && cur === id) action = '<span class="ok">✓ Equipped</span>';
+    else if (owned) action = '<button class="bt-btn pri" id="skin-equip">Equip</button>';
+    else if (s.cost === Infinity) action = '<span class="hint">🔒 ' + s.earn + '</span>';
+    else action = '<button class="bt-btn pri" id="skin-buy">Buy for ' + s.cost + ' 🪙</button>';
+    info.innerHTML = '<div><b>' + s.name + '</b>' + (s.anim ? ' <small>animated</small>' : '') + '</div><div class="skin-act">' + action + (previewId && !owned ? ' <button class="bt-btn" id="skin-cancel">Cancel</button>' : '') + '</div>';
+    const eq = document.getElementById('skin-equip'), by = document.getElementById('skin-buy'), ca = document.getElementById('skin-cancel');
+    if (eq) eq.onclick = () => { localStorage.setItem('bt_current_skin', id); previewId = null; applyTheme(); renderShop(); };
+    if (ca) ca.onclick = () => { previewId = null; applyTheme(); renderShop(); };
+    if (by) by.onclick = () => {
+        if (wallet < s.cost) { alert('Not enough coins! You need ' + (s.cost - wallet) + ' more. Win levels and daily challenges to earn them.'); return; }
+        localStorage.setItem('bt_wallet', wallet - s.cost);
+        own.push(id); localStorage.setItem('bt_skins', JSON.stringify(own));
+        localStorage.setItem('bt_current_skin', id);
+        BT.confetti(); BT.checkAch();
+        previewId = null; updateUI(); renderShop();
+    };
 }
 
 
