@@ -11,4 +11,5 @@ jobs:
     steps:
       - name: Ping the database health endpoint
         run: |
-          curl -sS --fail -X GET "${{secrets.SUPABASE_URL}}/auth/v1/health"
+          curl -sS --fail -X GET "${{secrets.SUPABASE_URL}}/auth/v1/health" \
+            -H "apikey: ${{secrets.SUPABASE_ANON_KEY}}"
