@@ -10,4 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping the database
-        run: curl -sS --fail -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/?apikey=${{ secrets.SUPABASE_ANON_KEY }}" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+        run: |
+          curl -sS --fail -X GET "${{secrets.SUPABASE_URL}}/rest/v1/" \
+            -H "apikey: ${{secrets.SUPABASE_ANON_KEY}}" \
+            -H "Authorization: Bearer ${{secrets.SUPABASE_ANON_KEY}}"
