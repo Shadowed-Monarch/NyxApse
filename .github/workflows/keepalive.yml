@@ -3,14 +3,13 @@ name: Keep Supabase awake
 on:
   schedule:
     - cron: '0 6 * * 1,4' # Runs every Monday and Thursday at 06:00 UTC
-  workflow_dispatch:      # Allows manual triggers from the GitHub Actions tab
+  workflow_dispatch:      # Allows manual trigger from GitHub Actions tab
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping the database
+      - name: Ping the database health endpoint
         run: |
-          curl -sS --fail -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+          curl -sS --fail -X GET "${{secrets.SUPABASE_URL}}/auth/v1/health" \
+            -H "apikey: ${{secrets.SUPABASE_ANON_KEY}}"
