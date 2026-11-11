@@ -2,8 +2,8 @@ name: Keep Supabase awake
 
 on:
   schedule:
-    - cron: '0 6 * * *' # Runs daily at 06:00 UTC
-  workflow_dispatch:      # Allows manual trigger from GitHub Actions tab
+    - cron: '0 6 * * *'
+  workflow_dispatch:
 
 jobs:
   ping:
