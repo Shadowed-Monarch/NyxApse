@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Ping the database
         run: |
-          curl -sS --fail -X GET "${{secrets.SUPABASE_URL}}/rest/v1/" \
-            -H "apikey: ${{secrets.SUPABASE_ANON_KEY}}" \
-            -H "Authorization: Bearer ${{secrets.SUPABASE_ANON_KEY}}"
+          URL=$(echo -n "${{secrets.SUPABASE_URL}}" | tr -d '\n')
+          KEY=$(echo -n "${{secrets.SUPABASE_ANON_KEY}}" | tr -d '\n')
+          curl -sS --fail -X GET "${URL}/rest/v1/" \
+            -H "apikey: ${KEY}" \
+            -H "Authorization: Bearer ${KEY}"   
