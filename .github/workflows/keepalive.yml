@@ -10,20 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping the database
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        shell: bash
         run: |
-          if [[ -z "$SUPABASE_URL" || -z "$SUPABASE_ANON_KEY" ]]; then
-            echo "::error::Missing SUPABASE_URL or SUPABASE_ANON_KEY Actions secret."
-            exit 1
-          fi
-
-          # Remove a trailing slash so the request URL is formed correctly.
-          SUPABASE_URL="${SUPABASE_URL%/}"
-
-          curl --silent --show-error --fail \
-            "${SUPABASE_URL}/rest/v1/" \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}"
+          curl -sS --fail -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
