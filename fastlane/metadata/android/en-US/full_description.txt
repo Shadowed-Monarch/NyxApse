@@ -1,0 +1,19 @@
+NyxApse is a collection of fast mini games for practicing speed, focus and memory. It works fully offline, has no ads and no tracking, and is open source (MIT).
+
+GAMES
+- Math: solve falling equations before time runs out
+- Dots: tap the numbered dots in order
+- Memory: remember the glowing blocks
+- Focus: pick the colour of the word, not the word
+- Aim: pop the falling bubbles
+- Reflex: dodge the falling bubbles
+- Odd One Out: spot the shape that is different
+
+FEATURES
+- Endless levels that get harder as you improve, with Brain Power ranks from Student to Overlord
+- Coins to spend on 27 skins, including animated ones
+- Daily challenge, streak calendar and 12 badges
+- Settings for sound (brown, pink or white noise), looks (including a flat, fast Minimal style) and game timers
+- Optional online leaderboard (off by default). It needs internet, uses a hosted Supabase service, and only shares a nickname, an avatar and your win records.
+
+NyxApse is for fun and practice. It makes no medical or health claims.

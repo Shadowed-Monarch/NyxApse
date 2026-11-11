@@ -1,0 +1,113 @@
+/* ui.css - shared responsive UI polish for every NyxApse page (loads last, overrides page styles) */
+:root { --gh: clamp(260px, calc(var(--vvh, 100dvh) - 230px), 700px); }
+* { -webkit-tap-highlight-color: transparent; }
+button, a, input { touch-action: manipulation; }
+::selection { background: var(--accent); color: #000; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* ---------- Buttons ---------- */
+.game-btn {
+  min-height: 52px; padding: 14px 38px !important; font-weight: 700; letter-spacing: .04em;
+  font-size: clamp(1.05rem, 2.6vw, 1.35rem) !important; border-radius: 999px !important;
+  margin-top: clamp(12px, 3vh, 28px) !important; border: 2px solid var(--accent) !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, var(--bg)), var(--bg)) !important;
+  box-shadow: 0 6px 20px -10px var(--accent); transition: transform .15s, box-shadow .2s;
+}
+.game-btn:hover { background: var(--accent) !important; color: #000 !important; transform: translateY(-2px); box-shadow: 0 10px 26px -8px var(--accent); }
+.game-btn:active { transform: scale(.96); }
+.header-btn { min-width: 42px; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px !important; transition: .2s; }
+.header-btn:hover { background: var(--accent) !important; color: #000 !important; transform: translateY(-1px); }
+body > header > a:first-child:not(.back-btn) { border: 1px solid var(--border); padding: 7px 16px; border-radius: 999px; transition: .2s; }
+body > header > a:first-child:not(.back-btn):hover { border-color: var(--accent); background: var(--accent); color: #000 !important; }
+header button { min-width: 34px; min-height: 34px; }
+
+/* ---------- Game pages ---------- */
+body:has(#game-container) { height: var(--vvh, 100dvh) !important; }
+body:has(#game-container) > header { position: sticky; top: 0; z-index: 60; backdrop-filter: blur(8px); padding-inline: max(20px, calc((100vw - 900px) / 2)) !important; }
+#game-container { height: var(--gh) !important; max-width: 900px !important; border-radius: 18px !important; box-shadow: 0 0 40px -18px var(--accent); }
+body:has(#input-area) { --gh: clamp(240px, calc(var(--vvh, 100dvh) - 330px), 640px); }
+body:has(#ans[inputmode]) { --gh: clamp(200px, calc(var(--vvh, 100dvh) - 430px), 600px); }
+body:has(#main-start-btn):not(:has(#stats-bar)) #game-container {
+  --ms: clamp(220px, min(92vw, calc(var(--vvh, 100dvh) - 250px)), 520px);
+  width: var(--ms) !important; height: var(--ms) !important; max-width: none !important; max-height: none !important;
+}
+body > div[style*="font-size:1.2rem"]:has(> div) { display: flex !important; justify-content: center; }
+#stats, #stats-bar, body > div[style*="font-size:1.2rem"] { gap: 10px; margin-top: 10px !important; font-size: clamp(.95rem, 2.4vw, 1.15rem) !important; }
+#stats > div, #stats-bar > div, body > div[style*="font-size:1.2rem"] > div { background: var(--panel, transparent); border: 1px solid var(--border); border-radius: 999px; padding: 4px 16px; }
+#input-area { margin-top: 12px !important; }
+#ans { width: min(80vw, 260px) !important; transition: box-shadow .2s; }
+#ans:focus { box-shadow: 0 0 18px var(--accent); }
+#btn-container h1 { font-size: clamp(1.5rem, 5vw, 2.4rem) !important; max-width: 90%; }
+@media (max-height: 560px) {
+  body:has(#game-container) { --gh: clamp(150px, calc(var(--vvh, 100dvh) - 190px), 400px) !important; }
+  body:has(#input-area) { --gh: clamp(120px, calc(var(--vvh, 100dvh) - 250px), 360px) !important; }
+}
+
+/* ---------- Home page ---------- */
+.hero h1 { font-size: clamp(2rem, 7vw, 3.6rem) !important; }
+header .logo-area { font-size: clamp(1.1rem, 4vw, 1.6rem); }
+body > header:not(:has(.back-btn)) > div:last-child { flex-wrap: wrap; justify-content: flex-end; }
+#vol { width: clamp(50px, 14vw, 90px) !important; }
+.rank-container { max-width: 560px; border-radius: 22px; }
+.game-grid { grid-template-columns: repeat(2, 1fr); gap: clamp(12px, 3vw, 24px); }
+.game-card { border-radius: 20px; padding: clamp(16px, 3vw, 30px) 16px; }
+.game-card h3 { margin: 6px 0 0; letter-spacing: .08em; }
+@media (min-width: 760px) {
+  .game-grid { grid-template-columns: repeat(3, 1fr); max-width: 900px; }
+  .game-card img { width: 68px; height: 68px; }
+}
+@media (min-width: 1100px) { .game-grid { max-width: 1000px; gap: 28px; } }
+#shop-overlay { overflow: auto; padding: 20px; box-sizing: border-box; justify-content: safe center !important; }
+.shop-grid { grid-template-columns: repeat(4, auto) !important; }
+.shop-item { width: clamp(52px, 16vw, 76px) !important; height: clamp(52px, 16vw, 76px) !important; transition: transform .15s; }
+.shop-item:hover { transform: scale(1.1); }
+@media (min-width: 640px) { .shop-grid { grid-template-columns: repeat(5, auto) !important; } }
+
+/* ---------- About page ---------- */
+.content-wrap { max-width: 780px !important; }
+.section { transition: border-color .2s; }
+.section:hover { border-color: var(--accent); }
+.section p, .section li { line-height: 1.7; font-size: clamp(.95rem, 2.2vw, 1.05rem); }
+h1 { font-size: clamp(1.7rem, 6vw, 2.6rem) !important; }
+
+/* ---------- Small-screen fixes ---------- */
+.rank-container { box-sizing: border-box; }
+.header-btn { padding: 0 10px !important; font-size: 1rem !important; }
+body > header:not(:has(.back-btn)) > div:last-child { gap: 8px !important; }
+@media (max-width: 480px) { #vol { display: none; } }
+
+/* ---------- Game header on phones ---------- */
+body:has(#game-container) > header { gap: 6px; }
+body:has(#game-container) > header > * { flex-shrink: 0; }
+body:has(#game-container) > header > div:nth-child(2) { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; row-gap: 2px; font-size: .85rem; }
+body:has(#game-container) > header > div:nth-child(2) small { flex-basis: 100%; }
+body > header > a:first-child:not(.back-btn) { white-space: nowrap; padding: 6px 12px; font-size: .85rem; }
+@media (max-width: 480px) { body:has(#game-container) > header { padding-inline: 12px !important; } header button { min-width: 30px; min-height: 30px; } }
+
+/* ---------- Narrow phones: header on two rows so nothing is cut off ---------- */
+html, body { max-width: 100vw; }
+@media (max-width: 520px) {
+  body:has(#game-container) > header { flex-wrap: wrap; justify-content: space-between; row-gap: 6px; padding-block: 8px !important; }
+  body:has(#game-container) > header > div:nth-child(2) { order: 3; flex-basis: 100%; }
+  body:has(#game-container) { --gh: clamp(240px, calc(var(--vvh, 100dvh) - 280px), 640px); }
+  body:has(#input-area) { --gh: clamp(220px, calc(var(--vvh, 100dvh) - 380px), 600px); }
+  body:has(#ans[inputmode]) { --gh: clamp(180px, calc(var(--vvh, 100dvh) - 480px), 560px); }
+  body:has(#main-start-btn):not(:has(#stats-bar)) #game-container { --ms: clamp(220px, min(92vw, calc(var(--vvh, 100dvh) - 300px)), 520px); }
+}
+
+/* ---------- Bubbles stay inside the box; stat chips wrap ---------- */
+.bubble { box-sizing: border-box; }
+#stats { flex-wrap: wrap; justify-content: center; }
+
+/* ---------- Keyboard open (class "kb" is set by game.js from the visible height) ---------- */
+html.kb body:has(#game-container) > header > div:nth-child(2) { display: none; }
+html.kb body:has(#game-container) > header { padding-block: 4px !important; }
+html.kb body:has(#input-area) { --gh: clamp(110px, calc(var(--vvh) - 215px), 420px) !important; }
+
+/* ---------- Answer-box pages (Math, Focus): layout always fits above the keyboard ---------- */
+html:has(#input-area) { overflow: hidden; }
+body:has(#input-area) { position: fixed; top: var(--vvt, 0px); left: 0; width: 100%; height: var(--vvh, 100dvh) !important; }
+body:has(#input-area) #game-container { flex: 1 1 0; height: auto !important; min-height: 80px; margin-top: 8px !important; }
+html.kb body:has(#input-area) #stats, html.kb body:has(#input-area) > div[style*="font-size:1.2rem"] { margin-top: 4px !important; }
+html.kb body:has(#input-area) #input-area { margin-top: 6px !important; margin-bottom: 6px; }
+html.kb #ans { padding: 8px !important; font-size: 1.3rem !important; }

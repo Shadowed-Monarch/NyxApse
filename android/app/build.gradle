@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.application'
+}
+
+// The whole game (HTML, CSS, JS, images) is copied into the app at build time.
+def webDir = layout.buildDirectory.dir('generated/web').get().asFile
+
+android {
+    namespace 'io.github.shadowed_monarch.nyxapse'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'io.github.shadowed_monarch.nyxapse'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Keep the APK free of the encrypted dependency blob (F-Droid prefers this).
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
+    lint {
+        abortOnError false
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs += webDir
+        }
+    }
+}
+
+tasks.register('syncWeb', Copy) {
+    from("$rootDir/..") {
+        include '*.html', '*.png', 'css/**', 'js/**'
+    }
+    into new File(webDir, 'www')
+}
+
+tasks.matching { it.name == 'preBuild' }.configureEach {
+    dependsOn 'syncWeb'
+}

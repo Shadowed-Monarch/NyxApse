@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="icon.png">
+    <title>NyxApse | Brain Training Game</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <meta property="og:title" content="NyxApse - Master your mind speed">
+    <meta property="og:description" content="6 brain games, ranks, skins and daily streaks. Free to play.">
+    <meta property="og:image" content="https://shadowed-monarch.github.io/NyxApse/logo.png">
+    <link rel="stylesheet" href="css/index.css?v=1.0.0">
+    <link rel="stylesheet" href="css/ui.css?v=1.0.0">
+    <link rel="stylesheet" href="css/shell.css?v=1.0.0">
+</head>
+<body>
+
+    <div class="noise-overlay"></div>
+
+    <header>
+        <div class="logo-area">
+            <button id="menu-btn" class="header-btn" onclick="NX.menu()" aria-label="Menu">☰</button>
+            <img src="logo.png" alt="" class="site-logo">
+            <span>Nyx<span style="color:var(--accent)">Apse</span></span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="profile-chip" class="header-btn" onclick="NX.openProfile()" aria-label="Profile"><span id="pf-avatar">🙂</span>&nbsp;<span id="pf-name">Player</span></button>
+            <button id="gear" class="header-btn" onclick="NX.openSettings()" aria-label="Settings">⚙️</button>
+            <div class="brain-display" title="Brain Power: your score and rank">
+                <span>🧠</span> <span id="brains">0</span>
+            </div>
+            <div class="brain-display" style="border-color:#ffcc00;color:#ffcc00;background:rgba(255,204,0,.1)" title="Coins: spend them in the Skin Shop">
+                <span>🪙</span> <span id="wallet">0</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1>NyxApse</h1>
+        <p>Master your mind speed.</p>
+        <div class="dev-credit">DEVELOPED BY SHADOWED</div>
+        <div id="bt-stats" class="dev-credit" style="line-height:1.8"></div>
+        <div id="bt-daily" style="margin-top:10px;font-size:0.85rem;color:var(--text)"></div>
+    </div>
+
+    <div class="rank-container">
+        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:10px;">
+            <span id="rank-icon" style="font-size:1.5rem;">🎓</span>
+            <span id="rank-name" style="font-weight:bold; font-size:1.2rem; color:var(--accent)">STUDENT</span>
+        </div>
+        <div class="progress-bar"><div id="rank-progress"></div></div>
+        <div id="next-rank-info" style="color:var(--subtext); font-size:0.8rem; margin-top:10px;"></div>
+    </div>
+
+    <div class="section-label">PRACTICE MODULES</div>
+
+    <div class="game-grid">
+        <a href="math.html" class="game-card">
+            <img src="maths.png" alt="Math">
+            <h3>MATH</h3>
+        </a>
+        <a href="dots.html" class="game-card">
+            <img src="Dots.png" alt="Dots">
+            <h3>DOTS</h3>
+        </a>
+        <a href="memory.html" class="game-card">
+            <img src="memory.png" alt="Memory">
+            <h3>MEMORY</h3>
+        </a>
+        <a href="stroop.html" class="game-card">
+            <img src="Focus.png" alt="Focus">
+            <h3>FOCUS</h3>
+        </a>
+        <a href="aim.html" class="game-card">
+            <img src="Aim.png" alt="Aim">
+            <h3>AIM</h3>
+        </a>
+        <a href="avoid.html" class="game-card">
+            <img src="Reflex.png" alt="Reflex">
+            <h3>REFLEX</h3>
+        </a>
+        <a href="oddout.html" class="game-card">
+            <img src="oddout.png" alt="Odd One Out">
+            <h3>ODD ONE</h3>
+        </a>
+    </div>
+
+    <button onclick="toggleShop()" style="margin-top:10px; padding:12px 30px; font-weight:bold; background:var(--card); color:var(--text); border:2px solid var(--accent); border-radius:25px; cursor:pointer;">
+        🎨 OPEN SKIN SHOP
+    </button>
+    
+    <div class="section-label" style="margin-top:30px">STREAK CALENDAR</div>
+    <div id="bt-cal"></div>
+
+    <div class="section-label" style="margin-top:20px">ACHIEVEMENTS</div>
+    <div id="bt-ach" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:90%;max-width:800px;margin-bottom:40px"></div>
+
+    <div id="shop-overlay">
+        <h2 style="color:var(--text); margin-bottom:8px;">CHOOSE SKIN</h2>
+        <div id="shop-wallet" style="margin-bottom:22px;font-weight:bold;color:#ffcc00"></div>
+        <div class="shop-grid" id="shop-grid"></div>
+        <div id="shop-info" class="shop-info"></div>
+        <div style="max-width:340px;text-align:center;color:var(--subtext);font-size:0.8rem;line-height:1.5;margin-bottom:16px">Back up or move your progress in ⚙️ Settings → Data.</div>
+        <button onclick="toggleShop()" style="padding:10px 20px; cursor:pointer; background:var(--text); color:var(--bg); border:none; border-radius:5px;">CLOSE</button>
+    </div>
+
+    <div id="dock-bg" onclick="NX.menu()"></div>
+    <nav id="dock" aria-label="Menu">
+        <div class="dock-brand">NyxApse</div>
+        <button onclick="NX.go('home')"><span>🏠</span>Home</button>
+        <button onclick="NX.go('games')"><span>🎮</span>Games</button>
+        <button onclick="NX.go('shop')"><span>🛒</span>Shop</button>
+        <button onclick="NX.go('ranks')"><span>🏆</span>Leaderboard</button>
+        <button onclick="NX.go('profile')"><span>👤</span>Profile</button>
+        <button onclick="NX.go('settings')"><span>⚙️</span>Settings</button>
+        <button onclick="NX.go('about')"><span>ℹ️</span>About</button>
+    </nav>
+
+    <script src="js/theme.js?v=1.0.0"></script>
+    <script src="js/game.js?v=1.0.0"></script>
+    <script src="js/shell.js?v=1.0.0"></script>
+    <script src="js/config.js?v=1.0.0"></script>
+    <script src="js/leaderboard.js?v=1.0.0"></script>
+    <script src="js/index.js?v=1.0.0"></script>
+</body>
+</html>

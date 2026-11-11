@@ -1,0 +1,33 @@
+# This file is NOT used by the app. It is the entry you submit to F-Droid:
+# copy it into the F-Droid "fdroiddata" repository as metadata/io.github.shadowed_monarch.nyxapse.yml
+# (see docs/RELEASE.md). Keep versionName/versionCode/commit in step with android/app/build.gradle and your git tag.
+Categories:
+  - Games
+License: MIT
+AuthorName: Shadowed
+WebSite: https://shadowed-monarch.github.io/NyxApse/
+SourceCode: https://github.com/shadowed-monarch/NyxApse
+IssueTracker: https://github.com/shadowed-monarch/NyxApse/issues
+
+# The optional leaderboard talks to a hosted Supabase server. F-Droid may ask you to add this label:
+# AntiFeatures:
+#   NonFreeNet:
+#     en-US: The optional online leaderboard uses a hosted Supabase service.
+
+AutoName: NyxApse
+
+RepoType: git
+Repo: https://github.com/shadowed-monarch/NyxApse.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    subdir: android/app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1
