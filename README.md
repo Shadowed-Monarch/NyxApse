@@ -25,7 +25,7 @@ Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen
 * 👑 **Mastermind:** 10,000 - 19,999 BP
 * 🏆 **Grandmaster:** 20,000 - 49,999 BP
 * 🌌 **Overlord:** 50,000+ BP
-
+![description](images/rank.png)
 ## ✨ Features
 * **Unlimited Levels:** Each game tracks its own level; speed and difficulty scale up.
 * **Two Currencies:** Each win earns Brain Power (level × 5 up to level 30, then slower), which sets your rank and never goes down, plus coins (5 + level, up to 55) that you spend in the shop.
