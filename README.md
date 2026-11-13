@@ -3,6 +3,7 @@
 **NyxApse** is a web-based mental training suite designed to sharpen your cognitive reflexes, mathematical speed, focus, and memory. Build your **Brain Power**, climb the ranks, and master your mental discipline.
 
 **[🚀 Play NyxApse Now](https://shadowed-monarch.github.io/NyxApse/)**
+![description](images/main.png)
 
 ---
 
@@ -14,6 +15,7 @@
 * **🔴 Aim:** Pop the bubbles falling two at a time before time runs out. The goal grows from 15 to 20 pops by level 100, and bubbles get faster each level. Bubbles are smaller on phones.
 * **⚡ Reflex:** Dodge the falling bubbles and survive until the timer ends.
 * **🔷 Odd One Out:** Tap the one shape that differs in color, size or rotation. The grid grows with your level.
+  ![description](images/games.png)
 
 ## 🏆 Ranking System
 Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen:
@@ -56,7 +58,7 @@ Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen
 * **Local Progress:** Ranks, levels and skins are saved in your browser's `LocalStorage`.
 * **Responsive UI:** Works on desktop and mobile (mouse and touch).
 
-## 🔊 About the Focus Sound
+## 🔊 Focus Sound
 The focus sound (⚙️ Settings → Sound) is **brown noise** by default, and you can switch to pink or white. It keeps playing as you move between pages. Brown noise is a deep, soft rumble, a bit like distant rain or a waterfall. White noise is brighter and hissier, like static.
 
 Which one is better comes down to taste. Research on background noise and focus is mixed, almost all of it used white noise, and no solid study shows brown noise beating white. Quieter is usually better than louder. Phone speakers play deep sounds weakly, so brown noise sounds thinner there, and headphones give the full effect. The sound is only a relaxing background, not a medical tool.
