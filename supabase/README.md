@@ -14,10 +14,23 @@ The game works without any of this. Do these steps only when you want online lea
    The workflow in `.github/workflows/keepalive.yml` then pings the database twice a week.
 6. **Test:** open the game, make a nickname, switch on Settings -> Leaderboard, win a level, then open the Leaderboard.
 
+## Upgrading from an older version
+Paste the new `schema.sql` into the SQL Editor and Run it again. It keeps your players and adds the new columns and tables.
+The first call after that puts everyone in Bronze 3, in groups of up to 30.
+
+## How divisions work
+- 19 steps: Bronze 3, 2, 1, Silver 3, 2, 1, Gold, Platinum, Diamond, Master (3 steps each) and Legend.
+- Each division is split into groups of at most 30 (65 players become 3 groups of about 22). You only see your own group.
+- Every Monday (UTC) the server settles the week by itself, the first time anyone calls it: top players move up (Ascent Zone), bottom players move down (Drop Zone). Zone sizes per 30 players: Bronze 20 up / 5 down, Silver 15/5, Gold 12/7, Platinum 9/8, Diamond 7/9, Master 5/10, Legend 0/10. Bronze 3 never drops. Groups under 10 players never demote. You need 1 win in the week to move up.
+- A season is a calendar month. At its end the final division is saved, coins are paid, and everyone drops 2 steps (never below Bronze 3).
+- Coins for weekly and season results are paid once, by the game, after the server confirms them.
+
 ## How it stays honest
 - Nobody can read or write the tables directly. Every action goes through a function that checks the rules.
 - Only wins at the normal timer count, and the reward has to match the game's formula exactly.
 - Each game has a fastest believable time, and a player can't log more than 240 wins an hour.
 - Boards reset every Monday (UTC), so cheaters can't stay on top.
+- A level can only be won if it is at most one above your best (the first time: up to 500), and nobody can log more than an hour of play in an hour.
+- Players with many impossible records are hidden until you review them, and a player reported by 5 different players is hidden too. Rankings, divisions and history exist only on the server; coins and skins are saved on the device and are cosmetic.
 - This cannot stop a determined cheater who reads the open-source code, but it makes cheating slow and short-lived.
   To remove a cheater: `update public.players set banned = true where lower(nickname) = lower('TheirName');`

@@ -28,7 +28,7 @@ class OddGame {
         const f = 1 - 0.75 * Math.min(1, L / 60);                                 // differences shrink, then stop at level 60
         const kind = ['color', 'size', 'turn'][Math.floor(Math.random() * 3)];
         const shape = kind === 'turn' ? 'tri' : ['tri', 'sq', 'circle'][Math.floor(Math.random() * 3)];
-        const hue = Math.floor(Math.random() * 360), odd = Math.floor(Math.random() * n * n), sign = Math.random() < 0.5 ? -1 : 1;
+        const hue = document.documentElement.classList.contains('bt-cb') ? [210, 35][Math.floor(Math.random() * 2)] : Math.floor(Math.random() * 360), odd = Math.floor(Math.random() * n * n), sign = Math.random() < 0.5 ? -1 : 1;
         const c = document.getElementById('game-container'), old = document.getElementById('grid'); if (old) old.remove();
         const grid = document.createElement('div'); grid.id = 'grid';
         grid.style.gridTemplateColumns = `repeat(${n}, 1fr)`;

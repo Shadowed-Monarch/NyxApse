@@ -5,7 +5,7 @@
 body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
 header { width: 100%; padding: 10px 20px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--accent); box-sizing: border-box; }
 #game-container { position: relative; width: 95%; max-width: 800px; height: 75vh; margin-top: 20px; border: 1px solid var(--border); border-radius: 15px; overflow: hidden; background: #000; cursor: crosshair; touch-action: none; }
-.bubble { position: absolute; border-radius: 50%; border: 3px solid var(--accent); background: rgba(255,0,0,0.2); box-shadow: 0 0 15px var(--accent); animation-timing-function: linear; z-index: 50; }
+.bubble { position: absolute; border-radius: 50%; border: 3px solid var(--accent); background: rgba(255,255,255,.12); background: color-mix(in srgb, var(--accent) 25%, transparent); box-shadow: 0 0 15px var(--accent); animation-timing-function: linear; z-index: 50; }
 @keyframes drift { from { top: 0; } to { top: calc(100% - var(--sz, 60px)); } }
 .game-btn { padding: 15px 40px; font-size: 1.5rem; background: var(--bg); color: var(--text); border: 2px solid var(--accent); border-radius: 30px; cursor: pointer; margin-top: 30px; }
 #btn-container { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: var(--overlay); z-index: 100; text-align: center; }

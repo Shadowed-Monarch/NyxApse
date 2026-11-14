@@ -3,13 +3,13 @@ const BT_RANKS = [
  {name:'Student',min:0,icon:'🎓'},{name:'Scholar',min:500,icon:'📜'},{name:'Sage',min:1500,icon:'🦉'},
  {name:'Genius',min:3000,icon:'💡'},{name:'Prodigy',min:6000,icon:'⚡'},{name:'Mastermind',min:10000,icon:'👑'},
  {name:'Grandmaster',min:20000,icon:'🏆'},{name:'Overlord',min:50000,icon:'🌌'}];
-const BT_GAMES = {math:'Math',dots:'Dots',memory:'Memory',focus:'Focus',aim:'Aim',reflex:'Reflex',odd:'Odd One Out'};
+const BT_GAMES = {math:'Math',dots:'Dots',memory:'Memory',focus:'Focus',aim:'Aim',reflex:'Reflex',odd:'Odd One Out',nback:'N-Back'};
 const BT = {};
 (function () {
  const LS = localStorage, rawSet = Storage.prototype.setItem, si = window.setInterval;
  const num = k => parseInt(LS.getItem(k)) || 0;
- const PAGES = {'math.html':'math','dots.html':'dots','memory.html':'memory','stroop.html':'focus','aim.html':'aim','avoid.html':'reflex','oddout.html':'odd'};
- const FILES = {math:'math.html',dots:'dots.html',memory:'memory.html',focus:'stroop.html',aim:'aim.html',reflex:'avoid.html',odd:'oddout.html'};
+ const PAGES = {'math.html':'math','dots.html':'dots','memory.html':'memory','stroop.html':'focus','aim.html':'aim','avoid.html':'reflex','oddout.html':'odd','nback.html':'nback'};
+ const FILES = {math:'math.html',dots:'dots.html',memory:'memory.html',focus:'stroop.html',aim:'aim.html',reflex:'avoid.html',odd:'oddout.html',nback:'nback.html'};
  const KEY = PAGES[location.pathname.split('/').pop()];
  BT.daily = () => { let h = 0; for (const ch of BT.today()) h = (h * 31 + ch.charCodeAt(0)) >>> 0; const k = Object.keys(BT_GAMES); return {key: k[h % k.length], need: 2 + (h >> 3) % 3}; };
  const SALT = 'bt1-Shadowed-7f3a', PROT = k => /^bt_(coins|unlocked_.+|skins|current_skin|wins|ach|streak|daily_total|pb|wallet|cal|best_streak|daily_prog|ledger|lbase|lanchor)$/.test(k);
@@ -33,10 +33,10 @@ const BT = {};
   if (document.body) { toast(tamperMsg); tamperMsg = ''; }
  }
  // ---------- Earnings ledger: every reward is a chained log entry, and your totals must match the log ----------
- const LEDGER_MAX = 200, GKEYS = ['math', 'dots', 'memory', 'focus', 'aim', 'reflex', 'odd'];
+ const LEDGER_MAX = 200, GKEYS = ['math', 'dots', 'memory', 'focus', 'aim', 'reflex', 'odd', 'nback'];
  BT.SKINS = Object.fromEntries(BT_SKIN_LIST.map(s => [s.id, s.cost]));   // prices (earned skins can never be bought)
  BT.BONUS = {math: 10, dots: 14, focus: 10, aim: 20, odd: 10, reflex: 0};   // most extra seconds a round can legitimately earn
- BT.MIN_S = {math: 5, dots: 1.5, memory: 2.5, focus: 4, aim: 3, odd: 3};   // fastest believable clear, in seconds
+ BT.MIN_S = {math: 5, dots: 1.5, memory: 2.5, focus: 4, aim: 3, odd: 3, nback: 25};   // fastest believable clear, in seconds
  const lget = () => { try { return JSON.parse(LS.getItem('bt_ledger')) || []; } catch (e) { return []; } };
  const lbase = () => { try { return JSON.parse(LS.getItem('bt_lbase')); } catch (e) { return null; } };
  const lh = (prev, body) => hash(SALT + 'L' + prev + JSON.stringify(body));
@@ -54,6 +54,7 @@ const BT = {};
   BT.raw('bt_ledger', JSON.stringify(L));
  }
  const bonus = (c, why) => { ledgerAdd({t: 'bonus', why, c}); BT.raw('bt_wallet', num('bt_wallet') + c); };
+ BT.grant = (c, why) => { c = Math.floor(Number(c)); if (c > 0 && c <= 3000) { bonus(c, String(why || 'reward').slice(0, 60)); toast('🏆 ' + String(why || 'Reward').slice(0, 40) + ' · +' + c + ' 🪙'); } };   // leaderboard coin rewards
  function spend(c) { ledgerAdd({t: 'buy', c: -c}); BT.raw('bt_wallet', num('bt_wallet') - c); BT.lastSpend = {amt: c, t: Date.now()}; }
  function checkLedger() {
   let base = lbase(), L = lget(), flagged = false;
@@ -213,7 +214,7 @@ const BT = {};
  ];
  function grantSkins() {   // earned skins appear on their own once you qualify
   let own; try { own = JSON.parse(LS.getItem('bt_skins')) || ['red']; } catch (e) { own = ['red']; }
-  const got = BT_SKIN_LIST.filter(s => s.cond && !own.includes(s.id) && ((s.cond === 'lvl100' && GKEYS.some(k => (num('bt_unlocked_' + k) || 1) >= 100)) || (s.cond === 'streak30' && Math.max(num('bt_best_streak'), BT.streak()) >= 30)));
+  const got = BT_SKIN_LIST.filter(s => s.cond && !own.includes(s.id) && ((s.cond === 'lvl100' && GKEYS.some(k => (num('bt_unlocked_' + k) || 1) >= 100)) || (s.cond === 'streak30' && Math.max(num('bt_best_streak'), BT.streak()) >= 30) || (/^tier\d$/.test(s.cond) && Number(LS.getItem('bt_lb_tier') || -1) >= Number(s.cond.slice(4)))));
   if (got.length) { BT.raw('bt_skins', JSON.stringify(own.concat(got.map(s => s.id)))); got.forEach((s, i) => setTimeout(() => toast('🎨 New skin unlocked: ' + s.name + '!'), 1500 + i * 1200)); }
  }
  function checkAch() {
@@ -231,7 +232,8 @@ const BT = {};
   focus:'Tap or type the COLOR of the word, not the word itself. Solve 10 to clear the level.',
   odd:'Tap the one shape that is different from the others (color, size or rotation). Find 10 to clear the level. A wrong tap costs 3 seconds.',
   aim:'Two bubbles fall at once. Tap them before they reach the bottom. Pop 15 to clear the level (the goal rises to 20 by level 100).',
-  reflex:'Move your mouse or finger to dodge the falling bubbles. Survive until the timer reaches 0.'
+  reflex:'Move your mouse or finger to dodge the falling bubbles. Survive until the timer reaches 0.',
+  nback:'A square lights up on the grid, one at a time. Tap SAME when the lit square is where it was N steps ago (N is shown on screen). 3 mistakes fail the level.'
  };
  function showHelp(k) {
   const o = document.createElement('div');
@@ -345,7 +347,8 @@ const BT = {};
    row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px;width:95%;max-width:800px';
    colorList.forEach(c => {
     const b = document.createElement('button'); b.textContent = c.name;
-    b.style.cssText = 'padding:10px 12px;border-radius:10px;border:2px solid ' + c.hex + ';background:var(--bg);color:' + c.hex + ';font-weight:bold;cursor:pointer';
+    b.className = 'fbtn'; b.dataset.sym = c.sym || ''; b.style.setProperty('--c', c.hex); b.style.setProperty('--cb', c.cb || c.hex);
+    b.style.cssText += ';padding:10px 12px;border-radius:10px;background:var(--bg);font-weight:bold;cursor:pointer';
     b.onclick = () => { ans.value = c.name; ans.dispatchEvent(new Event('input')); };
     row.appendChild(b);
    });

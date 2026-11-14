@@ -79,7 +79,7 @@
    '<div class="row"><span>Volume</span><input type="range" data-key="vol" min="0.05" max="1.5" step="0.05"></div>' + sw('sfx', 'Sound effects') + sw('vibe', 'Vibration') +
    '<h3>🎨 Look</h3><div class="row"><span>Theme</span>' + seg('theme', [['dark', 'Dark'], ['light', 'Light'], ['auto', 'Auto']]) + '</div>' +
    '<div class="row"><span>Style</span>' + seg('style', [['neon', 'Neon'], ['minimal', 'Minimal']]) + '</div>' +
-   '<p class="hint">Minimal is flat, sleek and fast: no glow, shadows, grain, blur or colour animation. It keeps your colours.</p>' + sw('mono', 'Black &amp; white') + sw('glow', 'Glow effects') + sw('grain', 'Background grain') + sw('confetti', 'Confetti') + sw('big', 'Large text') + sw('compact', 'Compact layout') +
+   '<p class="hint">Minimal is flat, sleek and fast: no glow, shadows, grain, blur or colour animation. It keeps your colours.</p>' + sw('mono', 'Black &amp; white') + sw('cb', 'Colorblind-friendly (symbols + safe colours)') + sw('glow', 'Glow effects') + sw('grain', 'Background grain') + sw('confetti', 'Confetti') + sw('big', 'Large text') + sw('compact', 'Compact layout') +
    '<h3>⏱ Game timers</h3><p class="hint">Change the seconds for each game. More time is easier, so wins pay less; less time pays more.</p>' + timers +
    '<button class="bt-btn" data-act="timers">Reset timers</button>' +
    '<h3>🏆 Leaderboard</h3>' + sw('leaderboard', 'Show me on leaderboards') + '<p class="hint" id="lb-note"></p><div class="bt-btns"><button class="bt-btn" data-act="lbdel">Delete my leaderboard data</button></div>' +
@@ -139,12 +139,40 @@
   const m = modal(head('👤 Profile') +
    '<div class="pf-top"><div class="pf-av">' + p.avatar + '</div><div><b class="pf-nm">' + esc(p.name) + '</b><div class="hint">' + r.icon + ' ' + r.name + '</div></div></div>' +
    '<div class="stat-grid"><div>🧠<b>' + bp.toLocaleString() + '</b>Brain Power</div><div>🪙<b>' + num('bt_wallet').toLocaleString() + '</b>Coins</div><div>🔥<b>' + s + '</b>Streak (best ' + Math.max(num('bt_best_streak'), s) + ')</div><div>🏁<b>' + num('bt_wins') + '</b>Wins</div><div>⏱<b>' + Math.round(num('bt_time_s') / 60) + '</b>Minutes</div><div>🏅<b>' + ach + '/' + BT.achTotal + '</b>Badges</div></div>' +
-   '<div class="lv-grid">' + lv + '</div><h3>✏️ Edit</h3><input id="nick" class="bt-in" maxlength="16" value="' + esc(p.name) + '" autocomplete="off">' + avatarPicker(p.avatar) +
+   '<div id="pf-div"></div><div class="lv-grid">' + lv + '</div><h3>✏️ Edit</h3><input id="nick" class="bt-in" maxlength="16" value="' + esc(p.name) + '" autocomplete="off">' + avatarPicker(p.avatar) +
    '<p class="err" id="nick-err"></p><div class="bt-btns"><button class="bt-btn pri" id="pf-save">Save</button></div>' +
    '<div class="row"><span>Show me on leaderboards</span><input type="checkbox" class="sw" id="pf-lb"></div>');
+  if (window.LB && LB.enabled()) LB.board('all').then(b => LB.me().then(me => { const box = m.el.querySelector('#pf-div'); if (box && me && me.joined) box.innerHTML = divLine(b && b.division != null ? b.division : me.dv, me.best_tier, me.best_cnt); })).catch(() => {});
+  else { const c = (() => { try { return JSON.parse(LS.getItem('bt_lb_me')); } catch (e) { return null; } })(); const box = m.el.querySelector('#pf-div'); if (c && box && window.LB) box.innerHTML = divLine(c.dv, c.best_tier, c.best_cnt); }
   wirePicker(m.el); const lb = m.el.querySelector('#pf-lb'); lb.checked = !!btCfg().leaderboard; lb.onchange = async () => { const ok = await setLeaderboard(lb.checked, t => { m.el.querySelector('#nick-err').textContent = t; }); if (!ok) lb.checked = !lb.checked; };
   m.el.querySelector('#pf-save').onclick = () => { const n = m.el.querySelector('#nick').value.trim().replace(/\s+/g, ' '); if (!validName(n)) { m.el.querySelector('#nick-err').textContent = 'Use 3-16 letters, numbers, spaces, _ . or -'; return; }
    p = Object.assign(p, {name: n, avatar: picked(m.el)}); setProfile(p); refreshChip(); if (btCfg().leaderboard && window.LB && LB.configured()) LB.join(p.name, p.avatar); m.close(); };
+ }
+
+ // ---------- Another player's public profile ----------
+ function divLine(d, bestTier, bestCnt) {
+  const t = LB.TIERS[LB.tierOf(d)], bt = LB.TIERS[bestTier];
+  return '<div class="div-line"><span style="color:' + t[2] + '">' + t[1] + ' <b>' + LB.divName(d) + '</b></span><span class="hint">Best: ' + LB.badge(bestTier, bestCnt) + ' ' + bt[0] + (bestCnt >= 2 ? ' · ' + bestCnt + ' seasons' : '') + '</span></div>';
+ }
+ async function openPlayer(nick) {
+  const m = modal(head('👤 Player') + '<div id="pl-body">Loading...</div>');
+  const box = m.el.querySelector('#pl-body');
+  try {
+   const r = await LB.profileOf(nick);
+   if (!r || !r.found) { box.innerHTML = '<p class="hint">This player is not available.</p>'; return; }
+   const rk = BT.rank(r.total_bp || 0), ml = r.maxlvl || {};
+   const lv = Object.entries(BT_GAMES).map(([k, n]) => '<span>' + n + ' <b>' + (ml[k] ? 'L' + ml[k] : '-') + '</b></span>').join('');
+   box.innerHTML = '<div class="pf-top"><div class="pf-av">' + esc(r.avatar) + '</div><div><b class="pf-nm">' + esc(r.nick) + '</b><div class="hint">' + rk.icon + ' ' + rk.name + '</div></div></div>' +
+    divLine(r.dv, r.best_tier, r.best_cnt) +
+    '<div class="stat-grid"><div>🧠<b>' + Number(r.total_bp || 0).toLocaleString() + '</b>Leaderboard BP</div><div>🏁<b>' + (r.total_wins || 0) + '</b>Wins</div></div>' +
+    '<h3>Best level per game</h3><div class="lv-grid">' + lv + '</div>' +
+    '<div class="bt-btns"><button class="bt-btn" id="pl-rep">🚩 Report</button></div><p class="hint" id="pl-msg"></p>';
+   box.querySelector('#pl-rep').onclick = async () => {
+    if (!confirm('Report ' + r.nick + ' for cheating or an inappropriate name?')) return;
+    const x = await LB.report(r.nick).catch(() => null);
+    box.querySelector('#pl-msg').textContent = x && x.ok ? 'Thanks. Reports are checked, and a player reported by several people is hidden until reviewed.' : 'Could not send the report. Try again later.';
+   };
+  } catch (e) { box.innerHTML = '<p class="hint">Can\'t reach the leaderboard right now.</p>'; }
  }
 
  // ---------- Leaderboard screen ----------
@@ -157,16 +185,21 @@
   const m = modal(head('🏆 Leaderboard') + '<select id="lb-game" class="bt-in">' + opts + '</select><div id="lb-meta" class="hint"></div><div id="lb-body" class="lb-body">Loading...</div><div id="lb-join"></div><div class="bt-btns"><button class="bt-btn" id="lb-ref">Refresh</button></div>');
   const el = m.el, body = el.querySelector('#lb-body'), meta = el.querySelector('#lb-meta'), joinBox = el.querySelector('#lb-join');
   const left = t => Math.floor(t / 86400) + 'd ' + Math.floor(t % 86400 / 3600) + 'h';
+  const zoneMark = z => ({up: '▲', down: '▼', crown: '👑', steady: '•'}[z] || '');
   const load = async () => {
    body.textContent = 'Loading...';
    try {
-    const r = await LB.board(el.querySelector('#lb-game').value);
-    meta.textContent = 'This week · Brain Power earned · resets in ' + left(r.resets_in || 0);
-    const rows = r.rows || [];
-    body.innerHTML = rows.length ? rows.map(x => '<div class="lb-row' + (x.me ? ' me' : '') + '"><b>#' + x.rank + '</b><span class="lb-av">' + esc(x.avatar) + '</span><span class="lb-nm">' + esc(x.nick) + '</span><b>' + Number(x.bp).toLocaleString() + '</b></div>').join('') +
-     (r.me && !rows.some(x => x.me) ? '<div class="lb-row me"><b>#' + r.me.rank + '</b><span class="lb-av">👤</span><span class="lb-nm">You</span><b>' + Number(r.me.bp).toLocaleString() + '</b></div>' : '') : '<p class="hint">No scores yet this week. Be the first!</p>';
+    const game = el.querySelector('#lb-game').value, r = await LB.board(game);
+    const rows = r.rows || [], hasDiv = r.division !== null && r.division !== undefined;
+    meta.innerHTML = hasDiv
+     ? '<b style="color:' + LB.TIERS[LB.tierOf(r.division)][2] + '">' + LB.TIERS[LB.tierOf(r.division)][1] + ' ' + LB.divName(r.division) + '</b> · group of ' + r.group_size + '<br>Week ends in ' + left(r.resets_in || 0) + ' · season ends in ' + left(r.season_resets_in || 0)
+     : 'This week · Brain Power earned · resets in ' + left(r.resets_in || 0);
+    body.innerHTML = rows.length ? rows.map(x => '<div class="lb-row' + (x.me ? ' me' : '') + (x.zone ? ' z-' + x.zone : '') + '" data-nick="' + esc(x.nick) + '"><b>#' + x.rank + '</b><span class="zone" title="' + (x.zone || '') + '">' + zoneMark(x.zone) + '</span><span class="lb-av">' + esc(x.avatar) + '</span><span class="lb-nm">' + esc(x.nick) + '</span><b>' + Number(x.bp).toLocaleString() + '</b></div>').join('') +
+     (game === 'all' && hasDiv ? '<p class="hint">▲ Ascent Zone moves up · • Steady · ▼ Drop Zone moves down. You need at least 1 win this week to move up. Tap a name to see their profile.</p>' : '<p class="hint">Tap a name to see their profile.</p>') : '<p class="hint">' + (hasDiv ? 'No scores yet this week. Be the first!' : 'Join the leaderboard to get a division and a group.') + '</p>';
+    LB.claim(); LB.me();
    } catch (e) { meta.textContent = ''; body.innerHTML = '<p class="hint">Can\'t reach the leaderboard right now. Your progress is safe, and your wins are sent when you are back online.</p>'; }
   };
+  body.onclick = e => { const row = e.target.closest('.lb-row[data-nick]'); if (row) openPlayer(row.dataset.nick); };
   const showJoin = () => {
    joinBox.innerHTML = btCfg().leaderboard ? '' : '<p class="hint">You are not on the leaderboard yet. Joining shares only your nickname, avatar and win records.</p><button class="bt-btn pri" id="lb-on">Show me on the leaderboard</button><p class="err" id="lb-msg"></p>';
    const b = joinBox.querySelector('#lb-on');
@@ -186,7 +219,7 @@
   if (where === 'ranks') openRanks();
   if (where === 'about') location.href = 'about.html';
  }
- window.NX = {openSettings, openProfile, openRanks, go, menu: () => document.body.classList.toggle('menu-open')};
+ window.NX = {openSettings, openProfile, openRanks, openPlayer, go, menu: () => document.body.classList.toggle('menu-open')};
 
  document.addEventListener('DOMContentLoaded', () => {
   // all files must come from the same version (a half-finished upload or a cached old file shows up here)

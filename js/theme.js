@@ -16,6 +16,11 @@ const BT_SKIN_LIST = [
     {id: 'rainbow', name: 'Rainbow', anim: ['#ff0000', '#ffcc00', '#00ff00', '#00ffff', '#9900ff'], cost: 10000},
     // earned (cannot be bought)
     {id: 'legend', name: 'Legend', anim: ['#fff6c2', '#ffd700', '#ffb347'], cost: Infinity, earn: 'Reach level 100 in any game', cond: 'lvl100'},
+    {id: 'dgold', name: 'Aureate', anim: ['#ffd700', '#ff9f1c', '#fff3b0'], cost: Infinity, earn: 'Reach Gold on the leaderboard', cond: 'tier2'},
+    {id: 'dplat', name: 'Platinum Mist', anim: ['#e5fffb', '#7fe5e0', '#b8c0ff'], cost: Infinity, earn: 'Reach Platinum on the leaderboard', cond: 'tier3'},
+    {id: 'ddiamond', name: 'Diamond Edge', anim: ['#6ec6ff', '#e0f7ff', '#3b82f6'], cost: Infinity, earn: 'Reach Diamond on the leaderboard', cond: 'tier4'},
+    {id: 'dmaster', name: 'Mystic', anim: ['#c77dff', '#7b2cbf', '#ff6bd6'], cost: Infinity, earn: 'Reach Master on the leaderboard', cond: 'tier5'},
+    {id: 'dlegend', name: 'Inferno', anim: ['#ff7a18', '#ffd000', '#ff2d55'], cost: Infinity, earn: 'Reach Legend on the leaderboard', cond: 'tier6'},
     {id: 'ember', name: 'Ember', anim: ['#ff3d00', '#ff9100', '#ff3d00'], cost: Infinity, earn: 'Keep a 30-day streak', cond: 'streak30'}
 ];
 const BT_SKINS = BT_SKIN_LIST;   // old name, kept for compatibility
@@ -43,7 +48,7 @@ const BT_SKINS = BT_SKIN_LIST;   // old name, kept for compatibility
 })();
 
 
-const BT_DEFAULTS = {noise: 'off', vol: 0.8, sfx: true, vibe: true, theme: 'dark', style: 'neon', glow: true, grain: true, confetti: true, big: false, compact: false, mono: false, leaderboard: false, timers: {}};
+const BT_DEFAULTS = {noise: 'off', vol: 0.8, sfx: true, vibe: true, theme: 'dark', style: 'neon', glow: true, grain: true, confetti: true, big: false, compact: false, mono: false, cb: false, leaderboard: false, timers: {}};
 function btCfg() {
     let s = {}; try { s = JSON.parse(localStorage.getItem('bt_settings')) || {}; } catch (e) {}
     const legacy = {theme: localStorage.getItem('bt_mode') || 'dark', sfx: localStorage.getItem('bt_sfx') !== 'off'};
@@ -54,7 +59,7 @@ function btApplyClasses() {
     const c = btCfg(), root = document.documentElement;
     root.setAttribute('data-theme', c.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : c.theme);
     root.classList.toggle('bt-min', c.style === 'minimal'); root.classList.toggle('bt-noglow', !c.glow); root.classList.toggle('bt-nograin', !c.grain);
-    root.classList.toggle('bt-mono', !!c.mono); root.classList.toggle('bt-big', !!c.big); root.classList.toggle('bt-compact', !!c.compact);
+    root.classList.toggle('bt-mono', !!c.mono); root.classList.toggle('bt-cb', !!c.cb); root.classList.toggle('bt-big', !!c.big); root.classList.toggle('bt-compact', !!c.compact);
 }
 function applySkin(id) {
     const skin = BT_SKIN_LIST.find(c => c.id === id) || BT_SKIN_LIST[0], b = document.body, root = document.documentElement;

@@ -134,3 +134,20 @@ input.sw:checked::after { transform: translateX(22px); }
 .footer a, #bt-daily a { display: inline-block; padding: 8px 6px; }
 .bt-x { width: 40px; height: 40px; }
 .hint a { display: inline-block; padding: 8px 6px; }
+
+/* ---- Colorblind-friendly mode (html.bt-cb) ---- */
+.fbtn { border: 2px solid var(--c); color: var(--c); }
+html.bt-cb .fbtn { border-color: var(--cb); color: var(--cb); }
+html.bt-cb .fbtn::after { content: ' ' attr(data-sym); }
+html.bt-cb .block.correct { background: #0072B2; box-shadow: none; }
+html.bt-cb .block.wrong { background: #D55E00; box-shadow: none; }
+html.bt-cb .block.correct, html.bt-cb .block.wrong { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 1.8rem; }
+html.bt-cb .block.correct::after { content: '✓'; }
+html.bt-cb .block.wrong::after { content: '✕'; }
+
+/* ---- Leaderboard divisions ---- */
+.lb-row { cursor: pointer; }
+.lb-row .zone { width: 1.4em; text-align: center; color: var(--subtext); }
+.lb-row.z-up .zone { color: #2ec4b6; } .lb-row.z-down .zone { color: #ff6b6b; } .lb-row.z-crown .zone { color: #ffd700; }
+.lb-row.z-up { border-left: 3px solid #2ec4b6; } .lb-row.z-down { border-left: 3px solid #ff6b6b; } .lb-row.z-crown { border-left: 3px solid #ffd700; }
+.div-line { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 4px; margin: 6px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 1.05rem; }

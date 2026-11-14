@@ -1,9 +1,10 @@
 /* stroop.js - logic for the Focus game */
 let selectedLvl = parseInt(localStorage.getItem('bt_unlocked_focus')) || 1;
 const colorList = [
-    {name:'RED', hex:'#FF3333'}, {name:'BLUE', hex:'#33A0FF'}, {name:'GREEN', hex:'#33FF33'}, 
-    {name:'YELLOW', hex:'#FFFF33'}, {name:'PINK', hex:'#FF33FF'}, {name:'ORANGE', hex:'#FF9933'}
+    {name:'RED', hex:'#FF3333', cb:'#D55E00', sym:'▲'}, {name:'BLUE', hex:'#33A0FF', cb:'#0072B2', sym:'■'}, {name:'GREEN', hex:'#33FF33', cb:'#009E73', sym:'●'},
+    {name:'YELLOW', hex:'#FFFF33', cb:'#F0E442', sym:'★'}, {name:'PINK', hex:'#FF33FF', cb:'#CC79A7', sym:'◆'}, {name:'ORANGE', hex:'#FF9933', cb:'#E69F00', sym:'✚'}
 ];
+const cbOn = () => document.documentElement.classList.contains('bt-cb');   // colorblind mode: safe colours + a symbol per colour
 
 class FocusGame {
     constructor() {
@@ -49,8 +50,10 @@ class FocusGame {
         const wordObj = colorList[Math.floor(Math.random()*colorList.length)];
         const colorObj = colorList[Math.floor(Math.random()*colorList.length)];
 
-        el.innerText = wordObj.name;
-        el.style.color = colorObj.hex; 
+        const cb = cbOn();
+        el.textContent = wordObj.name;
+        if (cb) { const s = document.createElement('div'); s.textContent = colorObj.sym; s.style.fontSize = '1.1rem'; el.appendChild(s); el.style.flexDirection = 'column'; }
+        el.style.color = cb ? colorObj.cb : colorObj.hex;
 
         container.appendChild(el);
         this.active = { el, ans: colorObj.name.toLowerCase() };

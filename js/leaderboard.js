@@ -38,7 +38,28 @@
 
  async function join(nick, avatar) { try { return (await rpc('register_player', {p_nick: nick, p_avatar: avatar})) || {ok: false, error: 'network'}; } catch (e) { return {ok: false, error: 'network'}; } }
  const board = game => rpc('get_board', {p_game: game || 'all'});
- async function deleteMe() { try { const r = await rpc('delete_me', {}); LS.removeItem(SENT); return r; } catch (e) { return {ok: false, error: 'network'}; } }
+ const me = async () => { try { const r = await rpc('get_me', {}); if (r && r.joined) { LS.setItem('bt_lb_tier', String(r.best_tier)); LS.setItem('bt_lb_me', JSON.stringify(r)); if (window.BT && BT.checkAch) BT.checkAch(); } return r; } catch (e) { return null; } };
+ const profileOf = nick => rpc('get_profile', {p_nick: nick});
+ const report = nick => rpc('report_player', {p_nick: nick});
+ // coin rewards from weekly / season results: given once, then confirmed to the server
+ async function claim() {
+  if (!enabled() || !window.BT || !BT.grant) return;
+  try {
+   const list = await rpc('get_rewards', {}); if (!Array.isArray(list) || !list.length) return;
+   let done; try { done = JSON.parse(LS.getItem('bt_lb_claimed')) || []; } catch (e) { done = []; }
+   const ids = [];
+   list.forEach(x => { if (!done.includes(x.id)) { BT.grant(x.coins, x.label); done.push(x.id); } ids.push(x.id); });
+   LS.setItem('bt_lb_claimed', JSON.stringify(done.slice(-300)));
+   await rpc('ack_rewards', {p_ids: ids});
+  } catch (e) { /* offline: tried again next time */ }
+ }
+ // ----- division names and badges (shared by the board and the profiles) -----
+ const TIERS = [['Bronze', '🥉', '#cd7f32'], ['Silver', '🥈', '#c0c0c0'], ['Gold', '🥇', '#ffd700'], ['Platinum', '💠', '#7fe5e0'], ['Diamond', '💎', '#6ec6ff'], ['Master', '🔮', '#c77dff'], ['Legend', '🔥', '#ff7a18']];
+ const tierOf = d => Math.min(6, Math.floor(d / 3));
+ const divName = d => tierOf(d) === 6 ? 'Legend' : TIERS[tierOf(d)][0] + ' ' + (3 - d % 3);
+ const sup = n => String(n).replace(/\d/g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[c]);
+ const badge = (t, cnt) => TIERS[t][1] + (cnt >= 2 ? sup(cnt) : '');   // 🥇² = finished 2 seasons in Gold
+ async function deleteMe() { try { const r = await rpc('delete_me', {}); LS.removeItem(SENT); LS.removeItem('bt_lb_tier'); LS.removeItem('bt_lb_me'); return r; } catch (e) { return {ok: false, error: 'network'}; } }
 
  // ----- sending wins: only entries not sent before, a few seconds after a win, quietly retried later -----
  const ledger = () => { try { return JSON.parse(LS.getItem('bt_ledger')) || []; } catch (e) { return []; } };
@@ -57,6 +78,6 @@
  }
  function queue() { clearTimeout(timer); timer = setTimeout(submitNow, 4000); }
 
- window.LB = {build: '1.0.0', configured, enabled, join, board, deleteMe, queueSubmit: queue, submitNow};
- document.addEventListener('DOMContentLoaded', () => { if (enabled()) queue(); });   // sends anything that was waiting
+ window.LB = {build: '1.0.0', configured, enabled, join, board, deleteMe, queueSubmit: queue, submitNow, me, profileOf, report, claim, TIERS, tierOf, divName, badge};
+ document.addEventListener('DOMContentLoaded', () => { if (enabled()) { queue(); setTimeout(() => { claim(); me(); }, 2500); } });   // sends anything that was waiting
 })();

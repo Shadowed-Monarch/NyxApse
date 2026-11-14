@@ -15,6 +15,7 @@
 * **🔴 Aim:** Pop the bubbles falling two at a time before time runs out. The goal grows from 15 to 20 pops by level 100, and bubbles get faster each level. Bubbles are smaller on phones.
 * **⚡ Reflex:** Dodge the falling bubbles and survive until the timer ends.
 * **🔷 Odd One Out:** Tap the one shape that differs in color, size or rotation. The grid grows with your level.
+- **🔲 N-Back:** A square lights up on a 3x3 grid. Tap SAME when it is where it was N steps ago. N grows from 1 to 5 as you level up and the pace gets faster. 3 mistakes fail the level. A classic working-memory trainer.
   ![description](images/games.png)
 
 ## 🏆 Ranking System
@@ -31,17 +32,18 @@ Eight ranks, with a rank-up celebration and "BP to next rank" on the home screen
 ## ✨ Features
 * **Unlimited Levels:** Each game tracks its own level; speed and difficulty scale up.
 * **Two Currencies:** Each win earns Brain Power (level × 5 up to level 30, then slower), which sets your rank and never goes down, plus coins (5 + level, up to 55) that you spend in the shop.
-* **Skin Shop:** 27 accent skins bought with 🪙 coins: 20 solid colors (Blue 100 up to Gold 4,000), 5 animated skins (Aurora, Sunset, Ocean, Lava and the **Legendary Rainbow** at 10,000), and 2 you can only earn (Legend for reaching level 100, Ember for a 30-day streak). Tap a skin to preview it before you buy. Buying skins never lowers your rank.
+* **Skin Shop:** 32 accent skins bought with 🪙 coins: 20 solid colors (Blue 100 up to Gold 4,000), 5 animated skins (Aurora, Sunset, Ocean, Lava and the **Legendary Rainbow** at 10,000), and 7 you can only earn (Legend for level 100, Ember for a 30-day streak, and one for reaching each of Gold, Platinum, Diamond, Master and Legend on the leaderboard). Tap a skin to preview it before you buy. Buying skins never lowers your rank.
 * **Light / Dark / Auto Mode:** Choose it in ⚙️ Settings; it applies to every game.
 * **Daily Streak & Calendar:** Win a level each day to keep your streak. Your first win of the day pays bonus coins (streak days × 10, max 70), and a calendar on the home screen shows every day you played.
 * **Stats:** Streak, total wins, time trained and level per game on the home screen.
 * **Level Select:** Use ◀ ▶ in any game to replay lower levels.
 * **Save Tools:** Export, import or reset your save code in ⚙️ Settings → Data.
 * **Earnings Ledger (anti-cheat):** every win is written to a chained, signed log with the game, level, time and reward. Your Brain Power, coins and levels must match the log, and only a real finished round can add to them. Edits made in browser DevTools or the console are undone. It's a strong deterrent, not real security, since everything runs on the player's device.
-* **Settings (⚙️ on every page):** focus sound (brown, pink or white, with volume), sound effects, vibration, theme (dark, light or auto), a **Minimal** style (flat, sleek and fast: no glow, shadows, grain, blur or color animation, and it keeps your colors), a separate **Black & white** switch, and switches for glow, grain, confetti, large text and compact layout.
+* **Settings (⚙️ on every page):** focus sound (brown, pink or white, with volume), sound effects, vibration, theme (dark, light or auto), a **Minimal** style (flat, sleek and fast: no glow, shadows, grain, blur or color animation, and it keeps your colors), a separate **Black & white** switch, a **Colorblind-friendly** switch (safe colors plus a symbol for each color in Focus, ✓/✕ marks in Memory), and switches for glow, grain, confetti, large text and compact layout.
 * **Game Timers:** change the seconds for each game within a safe range. More time is easier, so wins pay a little less; less time pays more.
 * **Profile & Menu:** pick a nickname and avatar on first launch, see your stats in your profile, and use the menu on the left of the home screen.
-* **Leaderboard (optional):** weekly boards of Brain Power earned, overall and for each game, powered by Supabase. Off by default; you join with a nickname and avatar, with no email or account. The server re-checks every win. See `supabase/README.md` to set it up.
+* **Leaderboard (optional):** weekly boards of Brain Power earned, powered by Supabase. Off by default; you join with a nickname and avatar, with no email or account. The server re-checks every win. See `supabase/README.md` to set it up.
+* **Divisions and Seasons:** a ladder separate from your BP rank: Bronze 3 → 2 → 1, then Silver, Gold, Platinum, Diamond, Master and Legend (19 steps). You only see your own group (max 30, same division). Each week the **Ascent Zone** (▲) moves up, the **Drop Zone** (▼) moves down and everyone else is **Steady**; the zone sizes shrink as you climb. A season is a calendar month: at its end your final division is saved, coins are paid and everyone drops 2 steps. Your profile shows your best division with a small number for how many seasons you finished there (🥇²). Tap a name on the board to see that player's profile, and report cheaters.
 * **Privacy:** no ads, no analytics, no tracking. See `privacy.html`.
 * **Sound:** Adjustable-volume brown-noise focus sound, plus win/lose sounds and vibration.
 * **Math Variety:** Subtraction unlocks at level 4, multiplication at level 8.
@@ -68,7 +70,7 @@ Which one is better comes down to taste. Research on background noise and focus 
 NyxApse/
 ├── index.html, about.html, privacy.html
 ├── math.html, dots.html, memory.html,
-│   stroop.html (Focus), aim.html, avoid.html (Reflex), oddout.html
+│   stroop.html (Focus), aim.html, avoid.html (Reflex), oddout.html, nback.html
 ├── css/
 │   ├── ui.css                      # shared responsive UI
 │   ├── shell.css                   # settings, menu, shop, minimal look (loads last)
