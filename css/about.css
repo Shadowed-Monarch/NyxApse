@@ -1,0 +1,86 @@
+/* about.css - styles for the About page */
+@property --accent { syntax: '<color>'; initial-value: #ff0000; inherits: true; }
+
+:root[data-theme="dark"] { 
+    --bg: #050505; 
+    --panel: #111; 
+    --text: #fff; 
+    --border: #333; 
+    --subtext: #888; 
+    --brain: #ff77ff; 
+    --shadow-color: var(--accent);
+}
+
+:root[data-theme="light"] { 
+    --bg: #f5f5f5; 
+    --panel: #ffffff; 
+    --text: #000; 
+    --border: #ddd; 
+    --subtext: #555; 
+    --brain: #9900ff; 
+    --shadow-color: transparent;
+}
+
+@keyframes rainbow-loop { 
+    0% { --accent: #ff0000; } 
+    20% { --accent: #ffcc00; } 
+    40% { --accent: #00ff00; } 
+    60% { --accent: #00ffff; } 
+    80% { --accent: #9900ff; } 
+    100% { --accent: #ff0000; } 
+}
+
+.rainbow-active { animation: rainbow-loop 5s infinite linear !important; }
+
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    background: var(--bg); 
+    color: var(--text); 
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    min-height: 100vh; 
+    padding: 20px; 
+    box-sizing: border-box; 
+}
+
+header { width: 100%; max-width: 800px; display: flex; justify-content: flex-start; margin-bottom: 40px; }
+
+.back-btn { 
+    color: var(--text); 
+    text-decoration: none; 
+    border: 1px solid var(--border); 
+    padding: 8px 20px; 
+    border-radius: 20px; 
+    font-size: 0.9rem; 
+    transition: 0.3s; 
+}
+.back-btn:hover { border-color: var(--accent); background: var(--accent); color: white; }
+
+.content-wrap { max-width: 700px; width: 100%; }
+
+.title-area { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+.about-logo { 
+    width: 60px; height: 60px; border-radius: 12px; 
+    border: 2px solid var(--accent); 
+    box-shadow: 0 0 10px var(--shadow-color); 
+}
+
+h1 { font-size: 2.5rem; letter-spacing: 3px; margin: 0; }
+h1 span { color: var(--accent); }
+
+.section { background: var(--panel); border: 1px solid var(--border); padding: 25px; border-radius: 20px; margin-bottom: 20px; }
+h2 { color: var(--accent); font-size: 1.2rem; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+p { color: var(--subtext); line-height: 1.6; }
+
+.rank-list { list-style: none; padding: 0; }
+.rank-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.rank-list li:last-child { border: none; }
+.rank-name { font-weight: bold; }
+.rank-val { color: var(--brain); }
+
+.tips-list { color: var(--subtext); padding-left: 20px; }
+.tips-list li { margin-bottom: 10px; }
+
+.footer { margin-top: 40px; color: var(--subtext); font-size: 0.8rem; text-align: center; }

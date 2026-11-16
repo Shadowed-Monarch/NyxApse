@@ -1,0 +1,327 @@
+/* shell.js - settings, profile, welcome screen, menu and the focus sound (shared by every page) */
+(function () {
+ const LS = localStorage, $ = s => document.querySelector(s);
+ const AVATARS = ['🦊', '🐼', '🐯', '🦁', '🐸', '🐙', '🦉', '🐺', '🐧', '🦄', '🐲', '🤖'];
+ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+ const num = k => parseInt(LS.getItem(k)) || 0;
+ const AV = (a, n) => window.NXAv ? NXAv.html(a, n || 24) : esc(a);   // an emoji, or one of the drawn icons
+ const getProfile = () => { try { return JSON.parse(LS.getItem('bt_profile')); } catch (e) { return null; } };
+ const setProfile = p => LS.setItem('bt_profile', JSON.stringify(p));
+
+ // ---------- Focus sound: keeps playing from page to page ----------
+ let ctx, src, gain, kind = null;
+ function buffer(type) {
+  const n = ctx.sampleRate * 2, buf = ctx.createBuffer(1, n, ctx.sampleRate), o = buf.getChannelData(0);
+  if (type === 'white') { for (let i = 0; i < n; i++) o[i] = (Math.random() * 2 - 1) * 0.5; }
+  else if (type === 'pink') {
+   let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+   for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1;
+    b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759; b2 = 0.969 * b2 + w * 0.153852;
+    b3 = 0.8665 * b3 + w * 0.3104856; b4 = 0.55 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.016898;
+    o[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.2; b6 = w * 0.115926; }
+  } else { let last = 0; for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; o[i] = (last + 0.02 * w) / 1.02; last = o[i]; o[i] *= 3.5; } }
+  return buf;
+ }
+ function applyNoise() {
+  const c = btCfg();
+  if (c.noise === 'off') { if (gain && ctx) gain.gain.setTargetAtTime(0, ctx.currentTime, 0.1); return; }
+  try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  if (!gain) { gain = ctx.createGain(); gain.gain.value = 0; gain.connect(ctx.destination); }
+  if (kind !== c.noise) {
+   if (src) { try { src.stop(); } catch (e) {} }
+   src = ctx.createBufferSource(); src.buffer = buffer(c.noise); src.loop = true; src.connect(gain); src.start(); kind = c.noise;
+  }
+  gain.gain.setTargetAtTime(c.vol, ctx.currentTime, 0.15);
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+ }
+ // browsers may block sound until the first tap on a new page
+ document.addEventListener('pointerdown', () => { if (ctx && ctx.state === 'suspended' && btCfg().noise !== 'off') ctx.resume().catch(() => {}); }, {passive: true});
+ document.addEventListener('visibilitychange', () => { if (!ctx) return; if (document.hidden) ctx.suspend(); else if (btCfg().noise !== 'off') ctx.resume().catch(() => {}); });
+ window.NXaudio = {apply: applyNoise, state: () => ({kind, ctx: ctx && ctx.state})};
+ applyNoise();
+
+ // ---------- Leaderboard on/off (joins the online board when it is set up) ----------
+ async function setLeaderboard(on, say) {
+  const tell = t => { if (say) say(t); };
+  if (!on) { btSave({leaderboard: false}); tell(''); return true; }
+  if (!window.LB || !LB.configured()) { btSave({leaderboard: true}); tell('Saved. The online leaderboard is not switched on in this version yet.'); return true; }
+  const p = getProfile(); if (!p) { tell('Pick a nickname first: open Profile.'); return false; }
+  if (LS.getItem('bt_terms') !== '1') {
+   if (!confirm('To join the leaderboard you must be 16 or older (or older if your country requires it) and agree to the Terms (terms.html) and the Privacy Policy (privacy.html).\n\nYour nickname, avatar and wins are sent to the server and other players can see them.\n\nDo you agree?')) { tell('Not joined. You can still play everything offline.'); return false; }
+   LS.setItem('bt_terms', '1');
+  }
+  tell('Joining...');
+  const r = await LB.join(p.name, p.avatar);
+  if (r.ok) { btSave({leaderboard: true}); tell('You are on the leaderboard as ' + p.name + '.'); LB.queueSubmit(); return true; }
+  tell(r.error === 'nickname_taken' ? 'That nickname is already taken. Change it in Profile and try again.' : r.error === 'bad_nickname' ? 'That nickname is not allowed. Change it in Profile.' : 'Could not reach the leaderboard. Try again later.');
+  return false;
+ }
+
+ // ---------- Modals ----------
+ let pausedByModal = false;
+ function modal(html, locked) {
+  const m = document.createElement('div'); m.className = 'bt-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
+  if (locked) m.dataset.locked = '1';
+  m.innerHTML = '<div class="bt-card">' + html + '</div>';
+  const finish = () => { m.remove(); if (pausedByModal && !$('.bt-modal')) { BT.paused = false; BT.sync(); pausedByModal = false; } };
+  const close = () => { if (m.dataset.closing) return; if (document.documentElement.classList.contains('bt-anim')) { m.dataset.closing = '1'; m.classList.add('bt-out'); setTimeout(finish, 200); } else finish(); };
+  m.addEventListener('click', e => { if (e.target.closest('[data-close]') || (e.target === m && !locked)) close(); });
+  document.body.appendChild(m);
+  if (typeof game !== 'undefined' && game.isPlaying && !BT.paused) { BT.paused = true; BT.sync(); pausedByModal = true; }
+  return {el: m, close};
+ }
+ document.addEventListener('keydown', e => { if (e.key === 'Escape') { document.body.classList.remove('menu-open'); const ms = document.querySelectorAll('.bt-modal'), m = ms[ms.length - 1]; if (m && !m.dataset.locked) m.querySelector('[data-close]') && m.querySelector('[data-close]').click(); } });
+ const head = t => '<div class="bt-head"><h2>' + t + '</h2><button class="bt-x" data-close aria-label="Close">✕</button></div>';
+
+ // ---------- Settings ----------
+ function openSettings() {
+  const names = {math: 'Math', dots: 'Dots', memory: 'Memory (look time)', focus: 'Focus', aim: 'Aim', reflex: 'Reflex (survive time)', odd: 'Odd One Out'};
+  const seg = (key, opts) => '<div class="seg" data-key="' + key + '">' + opts.map(o => '<button data-v="' + o[0] + '">' + o[1] + '</button>').join('') + '</div>';
+  const sw = (key, label) => '<div class="row"><span>' + label + '</span><input type="checkbox" class="sw" data-key="' + key + '"></div>';
+  const timers = Object.keys(BT.TIMERS).map(k => { const d = BT.TIMERS[k];
+   return '<div class="row"><span>' + names[k] + '</span><span class="rng"><input type="range" data-timer="' + k + '" min="' + d.min + '" max="' + d.max + '" step="1"><b class="tv"></b></span></div>'; }).join('');
+  const m = modal(head('⚙️ Settings') +
+   '<div class="tabs"><button data-tab="sound" class="on">🔊 Sound</button><button data-tab="look">🎨 Look</button><button data-tab="effects">✨ Effects</button><button data-tab="games">⏱ Games</button><button data-tab="online">🏆 Online</button><button data-tab="data">💾 Data</button></div><div class="tab on" data-tab="sound"><h3>🔊 Sound</h3><div class="row"><span>Focus sound</span>' + seg('noise', [['off', 'Off'], ['brown', 'Brown'], ['pink', 'Pink'], ['white', 'White']]) + '</div>' +
+   '<div class="row"><span>Volume</span><input type="range" data-key="vol" min="0.05" max="1.5" step="0.05"></div>' + sw('sfx', 'Sound effects') + sw('vibe', 'Vibration') +
+   '</div><div class="tab" data-tab="look"><h3>🎨 Look</h3><div class="row"><span>Theme</span>' + seg('theme', [['dark', 'Dark'], ['light', 'Light'], ['auto', 'Auto']]) + '</div>' +
+   '<div class="row"><span>Style</span>' + seg('style', [['neon', 'Neon'], ['minimal', 'Minimal']]) + '</div>' +
+   '<p class="hint">Minimal is flat, sleek and fast: no glow, shadows, grain, blur or colour animation. It keeps your colours.</p>' + sw('mono', 'Black &amp; white') + sw('cb', 'Colorblind-friendly (symbols + safe colours)') + sw('big', 'Large text') + sw('compact', 'Compact layout') +
+   '</div><div class="tab" data-tab="effects"><h3>✨ Effects</h3>' + sw('anim', 'Menu and popup animations (not used in Minimal style)') + sw('glow', 'Glow effects') + sw('grain', 'Background grain') + sw('confetti', 'Confetti') + '<p class="hint">Minimal style turns glow, grain and confetti off for speed.</p>' +
+   '</div><div class="tab" data-tab="games"><h3>⏱ Game timers</h3><p class="hint">More time is easier, so wins pay less; less time pays more.</p>' + timers +
+   '<button class="bt-btn" data-act="timers">Reset timers</button>' +
+   '</div><div class="tab" data-tab="online"><h3>🏆 Leaderboard</h3>' + sw('leaderboard', 'Show me on leaderboards') + '<p class="hint" id="lb-note"></p><div class="bt-btns"><button class="bt-btn" data-act="lbdel">Delete my leaderboard data</button></div>' +
+   '<h3>☁️ Cloud save</h3><div class="row"><span>Back up my progress automatically</span><input type="checkbox" class="sw" data-key="cloud"></div><p class="hint">Off by default. When on, your game progress is stored on the server, so you can restore it after clearing data or on a new phone. For players 16 and older. <a href="privacy.html">Privacy</a></p><div class="bt-btns"><button class="bt-btn" data-act="cloudcode">🔑 Show my code</button><button class="bt-btn" data-act="cloudsync">🔄 Save now</button></div><p class="hint" id="cloud-note"></p>' +
+   '</div><div class="tab" data-tab="data"><h3>💾 Data</h3><div class="bt-btns"><button class="bt-btn" data-act="export">📤 Export</button><button class="bt-btn" data-act="import">📥 Import</button><button class="bt-btn" data-act="reset">🗑 Reset</button><button class="bt-btn" data-act="cache">🧹 Clear app cache</button><button class="bt-btn" data-act="restore">☁️ Restore from code</button></div>' +
+   '<p class="hint">Export copies a save code you can use to back up or move your progress to another device.</p>' +
+   '<p class="hint"><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p></div>');
+  const el = m.el, fmt = o => o === 0 ? 'normal' : (o > 0 ? '+' : '−') + Math.abs(o) + 's';
+  const lab = k => { const o = BT.off(k); return fmt(o) + (o ? ' · wins pay ×' + BT.timeFactor(k).toFixed(2) : ''); };
+  const sync = () => { const c = btCfg();
+   el.querySelectorAll('.seg').forEach(s => s.querySelectorAll('button').forEach(b => b.classList.toggle('on', c[s.dataset.key] === b.dataset.v)));
+   el.querySelectorAll('input.sw').forEach(i => { i.checked = i.dataset.key === 'cloud' ? !!(window.LB && LB.cloud.on()) : !!c[i.dataset.key]; });
+   const v = el.querySelector('[data-key="vol"]'); v.value = c.vol;
+   el.querySelectorAll('[data-timer]').forEach(r => { r.value = BT.off(r.dataset.timer); r.nextElementSibling.textContent = lab(r.dataset.timer); }); };
+  el.addEventListener('click', e => {
+   const tb = e.target.closest('.tabs button');
+   if (tb) { el.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === tb)); el.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.dataset.tab === tb.dataset.tab)); return; }
+   const b = e.target.closest('.seg button'), a = e.target.closest('[data-act]');
+   if (b) { const key = b.parentElement.dataset.key, v = b.dataset.v;
+    if (key === 'style') btSave(v === 'minimal' ? {style: 'minimal', glow: false, grain: false, confetti: false} : {style: 'neon', glow: true, grain: true, confetti: true});
+    else btSave({[key]: v});
+    if (key === 'noise') applyNoise(); sync(); }
+   if (a) { const t = a.dataset.act;
+    if (t === 'timers') { btSave({timers: {}}); sync(); }
+    if (t === 'lbdel') { const note = el.querySelector('#lb-note');
+     if (!window.LB || !LB.configured()) note.textContent = 'The online leaderboard is not switched on in this version yet, so there is nothing to delete.';
+     else if (confirm('Delete your nickname and win records from the leaderboard server?')) { note.textContent = 'Deleting...'; LB.deleteMe().then(r => { btSave({leaderboard: false}); note.textContent = r && r.ok ? 'Your leaderboard data was deleted.' : 'Could not reach the server. Try again later.'; sync(); }); } }
+    if (t === 'restore') openRestore();
+    if (t === 'cloudcode') { const note = el.querySelector('#cloud-note'); if (window.LB && LB.cloud.on()) showCode(LB.cloud.code(), (getProfile() || {}).name); else note.textContent = 'Cloud save is off. Turn it on first.'; }
+    if (t === 'cloudsync') { const note = el.querySelector('#cloud-note'); if (!window.LB || !LB.cloud.on()) note.textContent = 'Cloud save is off. Turn it on first.'; else { note.textContent = 'Saving...'; LB.cloud.sync(true).then(r => { note.textContent = r && r.ok ? 'Saved.' : r && r.error === 'too_fast' ? 'Saved a moment ago. Try again in a few seconds.' : 'Could not reach the server. It will retry by itself.'; }); } }
+    if (t === 'export') BT.exportSave(); if (t === 'import') BT.importSave(); if (t === 'reset') BT.resetSave(); }
+  });
+  el.addEventListener('input', e => {
+   const i = e.target;
+   if (i.dataset.key === 'vol') { btSave({vol: Number(i.value)}); applyNoise(); }
+   if (i.dataset.timer) { const t = Object.assign({}, btCfg().timers); t[i.dataset.timer] = Number(i.value); btSave({timers: t}); i.nextElementSibling.textContent = lab(i.dataset.timer); }
+  });
+  el.addEventListener('change', e => { const i = e.target; if (!i.classList.contains('sw')) return;
+   if (i.dataset.key === 'cloud') { cloudToggle(i, t => { el.querySelector('#cloud-note').textContent = t; }); return; }
+   if (i.dataset.key === 'leaderboard') { setLeaderboard(i.checked, t => { el.querySelector('#lb-note').textContent = t; }).then(() => sync()); return; }
+   btSave({[i.dataset.key]: i.checked}); sync(); });
+  sync();
+ }
+
+ // ---------- Cloud save screens ----------
+ const needTerms = () => { if (LS.getItem('bt_terms') === '1') return true; if (!confirm('This stores data on the server, so you must be 16 or older (or older if your country requires it) and agree to the Terms (terms.html) and the Privacy Policy (privacy.html).\n\nDo you agree?')) return false; LS.setItem('bt_terms', '1'); return true; };
+ function showCode(code, nick) {
+  const m = modal(head('🔑 Your restore code') + '<p class="hint"><b>Take a screenshot now</b> and keep it safe. If you clear your data or change phones, you restore your progress with your nickname and this code. Anyone with the code can restore your save, so do not share it.</p>' +
+   '<div class="code-box"><div class="hint">Nickname</div><b>' + esc(nick || '') + '</b><div class="hint">Code</div><div class="code">' + esc(LB.cloud.pretty(code)) + '</div></div>' +
+   '<div class="bt-btns"><button class="bt-btn" id="cc-copy">📋 Copy code</button><button class="bt-btn pri" id="cc-ok">Done</button></div><p class="hint">You can see this code again in Settings → Online → Show my code, as long as this app keeps its data.</p>');
+  m.el.querySelector('#cc-copy').onclick = () => { try { navigator.clipboard.writeText(code); } catch (e) { /* ignore */ } m.el.querySelector('#cc-copy').textContent = '✅ Copied'; };
+  m.el.querySelector('#cc-ok').onclick = () => m.close();
+ }
+ async function cloudToggle(box, say) {
+  if (!window.LB || !LB.configured()) { box.checked = false; say('The online features are not switched on in this version yet.'); return; }
+  if (box.checked) {
+   if (!getProfile()) { box.checked = false; say('Pick a nickname first: open Profile.'); return; }
+   if (!needTerms()) { box.checked = false; say('Not turned on. You can still play everything offline.'); return; }
+   say('Turning on...'); const r = await LB.cloud.enable();
+   if (r.ok) { say('Cloud save is on.'); showCode(r.code, r.nick); } else { box.checked = false; say(r.error === 'network' ? 'Could not reach the server. Try again later.' : 'Could not turn it on (' + (r.error || 'error') + ').'); }
+  } else {
+   if (!confirm('Turn off Cloud save and delete your copy from the server? You will not be able to restore with your code any more.')) { box.checked = true; return; }
+   say('Turning off...'); const r = await LB.cloud.disable(); say(r.ok ? 'Cloud save is off and your cloud copy was deleted.' : 'Turned off here, but the server could not be reached to delete the copy. Try again later.');
+  }
+ }
+ function openRestore() {
+  const m = modal(head('☁️ Restore my progress') + '<p class="hint">Enter the nickname and the 10-digit code from your screenshot. This replaces the progress on this device.</p>' +
+   '<input id="rs-nick" class="bt-in" maxlength="16" placeholder="Nickname" autocomplete="off"><input id="rs-code" class="bt-in" inputmode="numeric" maxlength="11" placeholder="Code (10 digits)" autocomplete="off">' +
+   '<p class="err" id="rs-err"></p><div class="bt-btns"><button class="bt-btn pri" id="rs-go">Restore</button></div>');
+  const err = t => { m.el.querySelector('#rs-err').textContent = t; };
+  m.el.querySelector('#rs-go').onclick = async () => {
+   if (!window.LB || !LB.configured()) { err('The online features are not switched on in this version yet.'); return; }
+   err('Restoring...'); const r = await LB.cloud.restore(m.el.querySelector('#rs-nick').value, m.el.querySelector('#rs-code').value);
+   if (r.ok) { err('Restored!'); return; }
+   err(r.error === 'locked' ? 'Too many wrong tries. Try again in about ' + Math.max(1, Math.ceil((r.retry_in || 3600) / 60)) + ' minutes.' : r.error === 'wrong' ? 'The nickname or the code is not right.' : r.error === 'network' ? 'Could not reach the server. Check your internet and try again.' : r.error === 'bad_save' ? 'That save could not be read.' : 'Could not restore (' + (r.error || 'error') + ').');
+  };
+ }
+
+ // ---------- Profile ----------
+ function refreshChip() { const p = getProfile(); if (!p) return; const a = $('#pf-avatar'), n = $('#pf-name'); if (a) a.innerHTML = AV(p.avatar, 26); if (n) n.textContent = p.name; }
+ const validName = n => /^[A-Za-z0-9_.\- ]{3,16}$/.test(n);
+ const nameError = n => !validName(n) ? 'Use 3-16 letters, numbers, spaces, _ . or -' : (window.NXName && !NXName.check(n).ok ? NXName.message(NXName.check(n)) : '');
+ function avatarPicker(sel) { return '<div class="av-grid">' + AVATARS.concat(window.NXAv ? NXAv.ids : []).map(a => '<button type="button" class="av' + (a === sel ? ' on' : '') + '" data-av="' + a + '">' + AV(a, 30) + '</button>').join('') + '</div>'; }
+ function wirePicker(el) { el.addEventListener('click', e => { const b = e.target.closest('.av'); if (b) { el.querySelectorAll('.av').forEach(x => x.classList.toggle('on', x === b)); } }); }
+ const picked = el => (el.querySelector('.av.on') || {}).dataset.av || AVATARS[0];
+ function openWelcome() {
+  const m = modal('<div class="bt-head"><h2>👋 Welcome to NyxApse</h2></div><p class="hint">Pick a nickname and an avatar. Please don\'t use your real name. You can change both later in your profile.</p>' +
+   '<input id="nick" class="bt-in" maxlength="16" placeholder="Nickname (3-16 characters)" autocomplete="off">' + avatarPicker(AVATARS[0]) +
+   '<p class="err" id="nick-err"></p><div class="bt-btns"><button class="bt-btn pri" id="nick-go">Start playing</button><button class="bt-btn" id="nick-skip">Skip for now</button></div><div class="bt-btns"><button class="bt-btn" id="nick-restore">☁️ I have a restore code</button></div>', true);
+  wirePicker(m.el);
+  const fin = name => { setProfile({id: (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now() + Math.random().toString(36).slice(2)), name, avatar: picked(m.el), created: Date.now()}); refreshChip(); m.close(); };
+  m.el.querySelector('#nick-go').onclick = () => { const n = m.el.querySelector('#nick').value.trim().replace(/\s+/g, ' '); const er = nameError(n); if (er) { m.el.querySelector('#nick-err').textContent = er; return; } fin(n); };
+  m.el.querySelector('#nick-restore').onclick = () => { m.close(); openRestore(); };
+   m.el.querySelector('#nick-skip').onclick = () => fin('Player' + String(Math.floor(1000 + Math.random() * 9000)));
+ }
+ function openProfile() {
+  let p = getProfile(); if (!p) { openWelcome(); return; }
+  const bp = num('bt_coins'), r = BT.rank(bp), s = BT.streak(), ach = (() => { try { return JSON.parse(LS.getItem('bt_ach')).length; } catch (e) { return 0; } })();
+  const lv = Object.entries(BT_GAMES).map(([k, n]) => '<span>' + n + ' <b>L' + (num('bt_unlocked_' + k) || 1) + '</b></span>').join('');
+  const m = modal(head('👤 Profile') +
+   '<div class="pf-top"><div class="pf-av">' + AV(p.avatar, 52) + '</div><div><b class="pf-nm">' + esc(p.name) + '</b><div class="hint">' + r.icon + ' ' + r.name + '</div></div></div>' +
+   '<div class="stat-grid"><div>🧠<b>' + bp.toLocaleString() + '</b>Brain Power</div><div>🪙<b>' + num('bt_wallet').toLocaleString() + '</b>Coins</div><div>🔥<b>' + s + '</b>Streak (best ' + Math.max(num('bt_best_streak'), s) + ')</div><div>🏁<b>' + num('bt_wins') + '</b>Wins</div><div>⏱<b>' + Math.round(num('bt_time_s') / 60) + '</b>Minutes</div><div>🏅<b>' + ach + '/' + BT.achTotal + '</b>Badges</div></div>' +
+   '<div id="pf-div"></div><div class="lv-grid">' + lv + '</div><h3>✏️ Edit</h3><input id="nick" class="bt-in" maxlength="16" value="' + esc(p.name) + '" autocomplete="off">' + avatarPicker(p.avatar) +
+   '<p class="err" id="nick-err"></p><div class="bt-btns"><button class="bt-btn pri" id="pf-save">Save</button></div>' +
+   '<div class="row"><span>Show me on leaderboards</span><input type="checkbox" class="sw" id="pf-lb"></div>');
+  if (window.LB && LB.enabled()) LB.board('all').then(b => LB.me().then(me => { const box = m.el.querySelector('#pf-div'); if (box && me && me.joined) box.innerHTML = divLine(b && b.division != null ? b.division : me.dv, me.best_tier, me.best_cnt); })).catch(() => {});
+  else { const c = (() => { try { return JSON.parse(LS.getItem('bt_lb_me')); } catch (e) { return null; } })(); const box = m.el.querySelector('#pf-div'); if (c && box && window.LB) box.innerHTML = divLine(c.dv, c.best_tier, c.best_cnt); }
+  wirePicker(m.el); const lb = m.el.querySelector('#pf-lb'); lb.checked = !!btCfg().leaderboard; lb.onchange = async () => { const ok = await setLeaderboard(lb.checked, t => { m.el.querySelector('#nick-err').textContent = t; }); if (!ok) lb.checked = !lb.checked; };
+  m.el.querySelector('#pf-save').onclick = () => { const n = m.el.querySelector('#nick').value.trim().replace(/\s+/g, ' '); const er = nameError(n); if (er) { m.el.querySelector('#nick-err').textContent = er; return; }
+   p = Object.assign(p, {name: n, avatar: picked(m.el)}); setProfile(p); refreshChip(); if (btCfg().leaderboard && window.LB && LB.configured()) LB.join(p.name, p.avatar); m.close(); };
+ }
+
+ // ---------- Another player's public profile ----------
+ function divLine(d, bestTier, bestCnt) {
+  const t = LB.TIERS[LB.tierOf(d)], bt = LB.TIERS[bestTier];
+  return '<div class="div-line"><span style="color:' + t[2] + '">' + LB.shield(d, 26) + ' <b>' + LB.divName(d) + '</b></span><span class="hint">Best: ' + LB.badge(bestTier, bestCnt) + ' ' + bt[0] + (bestCnt >= 2 ? ' · ' + bestCnt + ' seasons' : '') + '</span></div>';
+ }
+ async function openPlayer(nick) {
+  const m = modal(head('👤 Player') + '<div id="pl-body">Loading...</div>');
+  const box = m.el.querySelector('#pl-body');
+  try {
+   const r = await LB.profileOf(nick);
+   if (!r || !r.found) { box.innerHTML = '<p class="hint">This player is not available.</p>'; return; }
+   const rk = BT.rank(r.total_bp || 0), ml = r.maxlvl || {};
+   const lv = Object.entries(BT_GAMES).map(([k, n]) => '<span>' + n + ' <b>' + (ml[k] ? 'L' + ml[k] : '-') + '</b></span>').join('');
+   box.innerHTML = '<div class="pf-top"><div class="pf-av">' + AV(r.avatar, 52) + '</div><div><b class="pf-nm">' + esc(r.nick) + '</b><div class="hint">' + rk.icon + ' ' + rk.name + '</div></div></div>' +
+    divLine(r.dv, r.best_tier, r.best_cnt) +
+    '<div class="stat-grid"><div>🧠<b>' + Number(r.total_bp || 0).toLocaleString() + '</b>Leaderboard BP</div><div>🏁<b>' + (r.total_wins || 0) + '</b>Wins</div></div>' +
+    '<h3>Best level per game</h3><div class="lv-grid">' + lv + '</div>' +
+    '<div class="bt-btns"><button class="bt-btn" id="pl-rep">🚩 Report</button></div><p class="hint" id="pl-msg"></p>';
+   box.querySelector('#pl-rep').onclick = async () => {
+    if (!confirm('Report ' + r.nick + ' for cheating or an inappropriate name?')) return;
+    const x = await LB.report(r.nick).catch(() => null);
+    box.querySelector('#pl-msg').textContent = x && x.ok ? 'Thanks. Reports are checked, and a player reported by several people is hidden until reviewed.' : x && x.error === 'too_new' ? 'Reporting is for players with at least 3 days and 20 wins.' : x && x.error === 'other_group' ? 'You can only report players in your own group.' : 'Could not send the report. Try again later.';
+   };
+  } catch (e) { box.innerHTML = '<p class="hint">Can\'t reach the leaderboard right now.</p>'; }
+ }
+
+ // ---------- Leaderboard screen ----------
+ function openRanks() {
+  if (!window.LB || !LB.configured()) {
+   modal(head('🏆 Leaderboard') + '<p>The online leaderboard is not switched on in this version yet. Your progress and rank are still saved on this device.</p>');
+   return;
+  }
+  const opts = [['all', 'Overall']].concat(Object.entries(BT_GAMES)).map(o => '<option value="' + o[0] + '">' + o[1] + '</option>').join('');
+  const m = modal(head('🏆 Leaderboard') + '<select id="lb-game" class="bt-in">' + opts + '</select><div id="lb-meta" class="hint"></div><div id="lb-body" class="lb-body">Loading...</div><div id="lb-join"></div><div class="bt-btns"><button class="bt-btn" id="lb-ref">Refresh</button></div>');
+  const el = m.el, body = el.querySelector('#lb-body'), meta = el.querySelector('#lb-meta'), joinBox = el.querySelector('#lb-join');
+  const left = t => Math.floor(t / 86400) + 'd ' + Math.floor(t % 86400 / 3600) + 'h';
+  const zoneMark = z => ({up: '▲', down: '▼', crown: '👑', steady: '•'}[z] || '');
+  const load = async () => {
+   body.textContent = 'Loading...';
+   try {
+    const game = el.querySelector('#lb-game').value, r = await LB.board(game);
+    const rows = r.rows || [], hasDiv = r.division !== null && r.division !== undefined;
+    meta.innerHTML = hasDiv
+     ? '<b style="color:' + LB.TIERS[LB.tierOf(r.division)][2] + '">' + LB.shield(r.division, 22) + ' ' + LB.divName(r.division) + '</b> · group of ' + r.group_size + '<br>Week ends in ' + left(r.resets_in || 0) + ' · season ends in ' + left(r.season_resets_in || 0)
+     : 'This week · Brain Power earned · resets in ' + left(r.resets_in || 0);
+    body.innerHTML = rows.length ? rows.map(x => '<div class="lb-row' + (x.me ? ' me' : '') + (x.zone ? ' z-' + x.zone : '') + '" data-nick="' + esc(x.nick) + '"><b>#' + x.rank + '</b><span class="zone" title="' + (x.zone || '') + '">' + zoneMark(x.zone) + '</span><span class="lb-av">' + AV(x.avatar, 26) + '</span><span class="lb-nm">' + esc(x.nick) + '</span><b>' + Number(x.bp).toLocaleString() + '</b></div>').join('') +
+     (game === 'all' && hasDiv ? '<p class="hint">▲ Ascent Zone moves up · • Steady · ▼ Drop Zone moves down. You need at least 1 win this week to move up. Tap a name to see their profile.</p>' : '<p class="hint">Tap a name to see their profile.</p>') : '<p class="hint">' + (hasDiv ? 'No scores yet this week. Be the first!' : 'Join the leaderboard to get a division and a group.') + '</p>';
+    LB.claim(); LB.me();
+   } catch (e) { meta.textContent = ''; body.innerHTML = '<p class="hint">Can\'t reach the leaderboard right now. Your progress is safe, and your wins are sent when you are back online.</p>'; }
+  };
+  body.onclick = e => { const row = e.target.closest('.lb-row[data-nick]'); if (row) openPlayer(row.dataset.nick); };
+  const showJoin = () => {
+   joinBox.innerHTML = btCfg().leaderboard ? '' : '<p class="hint">You are not on the leaderboard yet. The leaderboard is for players 16 and older (or older if your country requires it). Joining shares your nickname, avatar and win records, and you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</p><button class="bt-btn pri" id="lb-on">Show me on the leaderboard</button><p class="err" id="lb-msg"></p>';
+   const b = joinBox.querySelector('#lb-on');
+   if (b) b.onclick = async () => { if (await setLeaderboard(true, t => { joinBox.querySelector('#lb-msg').textContent = t; })) { showJoin(); setTimeout(load, 1500); } };
+  };
+  el.querySelector('#lb-game').onchange = load; el.querySelector('#lb-ref').onclick = load; showJoin(); load();
+ }
+
+ // ---------- Menu ----------
+ function go(where) {
+  document.body.classList.remove('menu-open');
+  if (where === 'profile') openProfile();
+  if (where === 'settings') openSettings();
+  if (where === 'home') window.scrollTo({top: 0, behavior: 'smooth'});
+  if (where === 'games') { const g = $('.game-grid'); if (g) g.scrollIntoView({behavior: 'smooth', block: 'center'}); }
+  if (where === 'shop' && typeof toggleShop === 'function') toggleShop();
+  if (where === 'ranks') openRanks();
+  if (where === 'about') navigate('about.html');
+  if (where === 'privacy') navigate('privacy.html');
+  if (where === 'terms') navigate('terms.html');
+ }
+ // ---------- Page transitions: games zoom in, info pages slide in, going home slides back ----------
+ const GAME_PAGE = /(^|\/)(math|dots|memory|stroop|aim|avoid|oddout|nback|sequence)\.html/;
+ function navigate(url) {
+  const root = document.documentElement;
+  if (!root.classList.contains('bt-anim')) { location.href = url; return; }
+  const bare = String(url).split('?')[0].split('#')[0];
+  const fx = GAME_PAGE.test(bare) ? 'zoom' : (/index\.html$/.test(bare) || /\/$/.test(bare)) ? 'back' : 'slide';
+  try { sessionStorage.setItem('nx_enter', fx); } catch (e) { /* ignore */ }
+  root.classList.add('nx-leave-' + fx);
+  setTimeout(() => { location.href = url; }, 230);
+ }
+ document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a[href]');
+  if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === '_blank' || a.hasAttribute('download')) return;
+  let u; try { u = new URL(a.href, location.href); } catch (err) { return; }
+  if (u.origin !== location.origin || u.pathname === location.pathname || !(/\.html$/.test(u.pathname) || /\/$/.test(u.pathname))) return;
+  e.preventDefault(); navigate(a.href);
+ });
+ window.addEventListener('pageshow', () => document.documentElement.classList.remove('nx-leave-zoom', 'nx-leave-slide', 'nx-leave-back'));
+ // ---------- Scroll reveal: cards and sections fly in from different directions as you scroll down ----------
+ document.addEventListener('DOMContentLoaded', () => {
+  if (!('IntersectionObserver' in window) || !document.documentElement.classList.contains('bt-anim')) return;
+  const FX = ['up', 'left', 'right', 'zoom'], els = [...document.querySelectorAll('.game-card, .section')];
+  if (!els.length) return;
+  els.forEach((el, i) => { el.classList.add('nx-reveal'); el.dataset.fx = FX[i % 4]; });
+  const io = new IntersectionObserver(es => {
+   es.filter(x => x.isIntersecting).forEach((x, k) => {
+    const el = x.target; io.unobserve(el); el.style.transitionDelay = (k * 70) + 'ms';
+    requestAnimationFrame(() => el.classList.add('nx-in'));
+    el.addEventListener('transitionend', function done(ev) { if (ev.propertyName !== 'opacity') return; el.removeEventListener('transitionend', done); el.classList.remove('nx-reveal', 'nx-in'); el.style.transitionDelay = ''; delete el.dataset.fx; });
+   });
+  }, {threshold: 0.12});
+  els.forEach(el => io.observe(el));
+ });
+ document.addEventListener('click', async e => {   // clears downloaded app files only; scores, coins and settings are kept
+  const b = e.target.closest && e.target.closest('[data-act="cache"]'); if (!b) return;
+  b.textContent = 'Clearing...';
+  try { if (window.caches) { const k = await caches.keys(); await Promise.all(k.map(x => caches.delete(x))); } const rs = navigator.serviceWorker ? await navigator.serviceWorker.getRegistrations() : []; await Promise.all(rs.map(r => r.unregister())); } catch (err) { /* ignore */ }
+  location.reload();
+ });
+ window.NX = {openSettings, openProfile, openRanks, openPlayer, navigate, go, menu: () => document.body.classList.toggle('menu-open')};
+
+ document.addEventListener('DOMContentLoaded', () => {
+  // all files must come from the same version (a half-finished upload or a cached old file shows up here)
+  const builds = {theme: typeof BT_BUILD !== 'undefined' ? BT_BUILD : '?', game: BT.build, shell: '1.0.0', board: window.LB ? LB.build : '?'};
+  if (Object.values(builds).some(v => v !== '1.0.0')) { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99998;background:#b00020;color:#fff;padding:10px 14px;font:14px sans-serif;text-align:center'; d.textContent = 'Some NyxApse files are out of date. Refresh the page (Ctrl+Shift+R) or clear this site\'s data, and make sure every file was uploaded.'; document.body.appendChild(d); }
+  // settings button on every page
+  if (!$('#gear')) {
+   const h = $('header'); if (h) { const b = document.createElement('button'); b.id = 'gear'; b.className = 'header-btn'; b.textContent = '⚙️'; b.setAttribute('aria-label', 'Settings'); b.style.cssText = 'margin-left:auto'; b.onclick = openSettings; h.appendChild(b); }
+  }
+  // profile lives on the home page only
+  if ($('#profile-chip')) { refreshChip(); if (!getProfile()) openWelcome(); }
+ });
+})();
