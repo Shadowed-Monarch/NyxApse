@@ -87,7 +87,7 @@
    '<div class="row"><span>Style</span>' + seg('style', [['neon', 'Neon'], ['minimal', 'Minimal']]) + '</div>' +
    '<p class="hint">Minimal is flat, sleek and fast: no glow, shadows, grain, blur or colour animation. It keeps your colours.</p>' + sw('mono', 'Black &amp; white') + sw('cb', 'Colorblind-friendly (symbols + safe colours)') + sw('big', 'Large text') + sw('compact', 'Compact layout') +
    '</div><div class="tab" data-tab="effects"><h3>✨ Effects</h3>' + sw('anim', 'Menu and popup animations (not used in Minimal style)') + sw('glow', 'Glow effects') + sw('grain', 'Background grain') + sw('confetti', 'Confetti') + '<p class="hint">Minimal style turns glow, grain and confetti off for speed.</p>' +
-   '</div><div class="tab" data-tab="games"><h3>⏱ Game timers</h3><p class="hint">More time is easier, so wins pay less; less time pays more.</p>' + timers +
+   '</div><div class="tab" data-tab="games"><h3>⏱ Game timers</h3><p class="hint">More time is easier, so wins pay less; less time pays more. Wins at a changed timer still count for your own BP and coins, but only wins at the normal timer count on the leaderboard and for best times.</p>' + timers +
    '<button class="bt-btn" data-act="timers">Reset timers</button>' +
    '</div><div class="tab" data-tab="online"><h3>🏆 Leaderboard</h3>' + sw('leaderboard', 'Show me on leaderboards') + '<p class="hint" id="lb-note"></p><div class="bt-btns"><button class="bt-btn" data-act="lbdel">Delete my leaderboard data</button></div>' +
    '<h3>☁️ Cloud save</h3><div class="row"><span>Back up my progress automatically</span><input type="checkbox" class="sw" data-key="cloud"></div><p class="hint">Off by default. When on, your game progress is stored on the server, so you can restore it after clearing data or on a new phone. For players 16 and older. <a href="privacy.html">Privacy</a></p><div class="bt-btns"><button class="bt-btn" data-act="cloudcode">🔑 Show my code</button><button class="bt-btn" data-act="cloudsync">🔄 Save now</button></div><p class="hint" id="cloud-note"></p>' +
@@ -95,7 +95,7 @@
    '<p class="hint">Export copies a save code you can use to back up or move your progress to another device.</p>' +
    '<p class="hint"><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p></div>');
   const el = m.el, fmt = o => o === 0 ? 'normal' : (o > 0 ? '+' : '−') + Math.abs(o) + 's';
-  const lab = k => { const o = BT.off(k); return fmt(o) + (o ? ' · wins pay ×' + BT.timeFactor(k).toFixed(2) : ''); };
+  const lab = k => { const o = BT.off(k); return fmt(o) + (o ? ' · wins pay ×' + BT.timeFactor(k).toFixed(2) + ' · not ranked' : ''); };
   const sync = () => { const c = btCfg();
    el.querySelectorAll('.seg').forEach(s => s.querySelectorAll('button').forEach(b => b.classList.toggle('on', c[s.dataset.key] === b.dataset.v)));
    el.querySelectorAll('input.sw').forEach(i => { i.checked = i.dataset.key === 'cloud' ? !!(window.LB && LB.cloud.on()) : !!c[i.dataset.key]; });
