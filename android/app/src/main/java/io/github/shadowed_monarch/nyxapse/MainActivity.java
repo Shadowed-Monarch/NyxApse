@@ -2,12 +2,15 @@ package io.github.shadowed_monarch.nyxapse;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
+import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -18,6 +21,7 @@ import android.widget.EditText;
 /** NyxApse: shows the bundled game (assets/www) in a WebView. No third-party libraries. */
 public class MainActivity extends Activity {
     private WebView web;
+    private PermissionRequest pendingCam;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +51,23 @@ public class MainActivity extends Activity {
         // A WebView shows no alert/confirm/prompt boxes on its own. The game uses them
         // (export/import/reset, "not enough coins"), so show them as normal Android dialogs.
         web.setWebChromeClient(new WebChromeClient() {
+            // Camera is only asked for when the player taps "Scan QR code" in Settings.
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(() -> {
+                    boolean cam = false;
+                    for (String r : request.getResources()) if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) cam = true;
+                    if (!cam) { request.deny(); return; }
+                    if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                        request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+                    } else {
+                        if (pendingCam != null) pendingCam.deny();
+                        pendingCam = request;
+                        requestPermissions(new String[]{Manifest.permission.CAMERA}, 7);
+                    }
+                });
+            }
+
             @Override
             public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
                 new AlertDialog.Builder(MainActivity.this).setMessage(message)
@@ -78,6 +99,15 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState == null) web.loadUrl("file:///android_asset/www/index.html");
         else web.restoreState(savedInstanceState);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        super.onRequestPermissionsResult(code, perms, results);
+        if (code != 7 || pendingCam == null) return;
+        if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) pendingCam.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+        else pendingCam.deny();
+        pendingCam = null;
     }
 
     @Override

@@ -75,32 +75,25 @@
 
  // ---------- Settings ----------
  function openSettings() {
-  const names = {math: 'Math', dots: 'Dots', memory: 'Memory (look time)', focus: 'Focus', aim: 'Aim', reflex: 'Reflex (survive time)', odd: 'Odd One Out'};
   const seg = (key, opts) => '<div class="seg" data-key="' + key + '">' + opts.map(o => '<button data-v="' + o[0] + '">' + o[1] + '</button>').join('') + '</div>';
   const sw = (key, label) => '<div class="row"><span>' + label + '</span><input type="checkbox" class="sw" data-key="' + key + '"></div>';
-  const timers = Object.keys(BT.TIMERS).map(k => { const d = BT.TIMERS[k];
-   return '<div class="row"><span>' + names[k] + '</span><span class="rng"><input type="range" data-timer="' + k + '" min="' + d.min + '" max="' + d.max + '" step="1"><b class="tv"></b></span></div>'; }).join('');
   const m = modal(head('⚙️ Settings') +
-   '<div class="tabs"><button data-tab="sound" class="on">🔊 Sound</button><button data-tab="look">🎨 Look</button><button data-tab="effects">✨ Effects</button><button data-tab="games">⏱ Games</button><button data-tab="online">🏆 Online</button><button data-tab="data">💾 Data</button></div><div class="tab on" data-tab="sound"><h3>🔊 Sound</h3><div class="row"><span>Focus sound</span>' + seg('noise', [['off', 'Off'], ['brown', 'Brown'], ['pink', 'Pink'], ['white', 'White']]) + '</div>' +
+   '<div class="tabs"><button data-tab="sound" class="on">🔊 Sound</button><button data-tab="look">🎨 Look</button><button data-tab="effects">✨ Effects</button><button data-tab="online">🏆 Online</button><button data-tab="data">💾 Data</button></div><div class="tab on" data-tab="sound"><h3>🔊 Sound</h3><div class="row"><span>Focus sound</span>' + seg('noise', [['off', 'Off'], ['brown', 'Brown'], ['pink', 'Pink'], ['white', 'White']]) + '</div>' +
    '<div class="row"><span>Volume</span><input type="range" data-key="vol" min="0.05" max="1.5" step="0.05"></div>' + sw('sfx', 'Sound effects') + sw('vibe', 'Vibration') +
    '</div><div class="tab" data-tab="look"><h3>🎨 Look</h3><div class="row"><span>Theme</span>' + seg('theme', [['dark', 'Dark'], ['light', 'Light'], ['auto', 'Auto']]) + '</div>' +
    '<div class="row"><span>Style</span>' + seg('style', [['neon', 'Neon'], ['minimal', 'Minimal']]) + '</div>' +
    '<p class="hint">Minimal is flat, sleek and fast: no glow, shadows, grain, blur or colour animation. It keeps your colours.</p>' + sw('mono', 'Black &amp; white') + sw('cb', 'Colorblind-friendly (symbols + safe colours)') + sw('big', 'Large text') + sw('compact', 'Compact layout') +
    '</div><div class="tab" data-tab="effects"><h3>✨ Effects</h3>' + sw('anim', 'Menu and popup animations (not used in Minimal style)') + sw('glow', 'Glow effects') + sw('grain', 'Background grain') + sw('confetti', 'Confetti') + '<p class="hint">Minimal style turns glow, grain and confetti off for speed.</p>' +
-   '</div><div class="tab" data-tab="games"><h3>⏱ Game timers</h3><p class="hint">More time is easier, so wins pay less; less time pays more. Wins at a changed timer still count for your own BP and coins, but only wins at the normal timer count on the leaderboard and for best times.</p>' + timers +
-   '<button class="bt-btn" data-act="timers">Reset timers</button>' +
    '</div><div class="tab" data-tab="online"><h3>🏆 Leaderboard</h3>' + sw('leaderboard', 'Show me on leaderboards') + '<p class="hint" id="lb-note"></p><div class="bt-btns"><button class="bt-btn" data-act="lbdel">Delete my leaderboard data</button></div>' +
    '<h3>☁️ Cloud save</h3><div class="row"><span>Back up my progress automatically</span><input type="checkbox" class="sw" data-key="cloud"></div><p class="hint">Off by default. When on, your game progress is stored on the server, so you can restore it after clearing data or on a new phone. For players 16 and older. <a href="privacy.html">Privacy</a></p><div class="bt-btns"><button class="bt-btn" data-act="cloudcode">🔑 Show my code</button><button class="bt-btn" data-act="cloudsync">🔄 Save now</button></div><p class="hint" id="cloud-note"></p>' +
-   '</div><div class="tab" data-tab="data"><h3>💾 Data</h3><div class="bt-btns"><button class="bt-btn" data-act="export">📤 Export</button><button class="bt-btn" data-act="import">📥 Import</button><button class="bt-btn" data-act="reset">🗑 Reset</button><button class="bt-btn" data-act="cache">🧹 Clear app cache</button><button class="bt-btn" data-act="restore">☁️ Restore from code</button></div>' +
-   '<p class="hint">Export copies a save code you can use to back up or move your progress to another device.</p>' +
+   '</div><div class="tab" data-tab="data"><h3>💾 Data</h3><div class="bt-btns"><button class="bt-btn" data-act="export">📤 Export</button><button class="bt-btn" data-act="import">📥 Import</button><button class="bt-btn" data-act="reset">🗑 Reset</button><button class="bt-btn" data-act="cache">🧹 Clear app cache</button></div>' +
+   '<p class="hint">Export shows a short code and a QR code (needs Cloud save on). Import takes the code, a scanned QR, or a photo of one, to move your progress to another device.</p>' +
    '<p class="hint"><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p></div>');
-  const el = m.el, fmt = o => o === 0 ? 'normal' : (o > 0 ? '+' : '−') + Math.abs(o) + 's';
-  const lab = k => { const o = BT.off(k); return fmt(o) + (o ? ' · wins pay ×' + BT.timeFactor(k).toFixed(2) + ' · not ranked' : ''); };
+  const el = m.el;
   const sync = () => { const c = btCfg();
    el.querySelectorAll('.seg').forEach(s => s.querySelectorAll('button').forEach(b => b.classList.toggle('on', c[s.dataset.key] === b.dataset.v)));
    el.querySelectorAll('input.sw').forEach(i => { i.checked = i.dataset.key === 'cloud' ? !!(window.LB && LB.cloud.on()) : !!c[i.dataset.key]; });
-   const v = el.querySelector('[data-key="vol"]'); v.value = c.vol;
-   el.querySelectorAll('[data-timer]').forEach(r => { r.value = BT.off(r.dataset.timer); r.nextElementSibling.textContent = lab(r.dataset.timer); }); };
+   const v = el.querySelector('[data-key="vol"]'); v.value = c.vol; };
   el.addEventListener('click', e => {
    const tb = e.target.closest('.tabs button');
    if (tb) { el.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === tb)); el.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.dataset.tab === tb.dataset.tab)); return; }
@@ -110,19 +103,16 @@
     else btSave({[key]: v});
     if (key === 'noise') applyNoise(); sync(); }
    if (a) { const t = a.dataset.act;
-    if (t === 'timers') { btSave({timers: {}}); sync(); }
     if (t === 'lbdel') { const note = el.querySelector('#lb-note');
      if (!window.LB || !LB.configured()) note.textContent = 'The online leaderboard is not switched on in this version yet, so there is nothing to delete.';
      else if (confirm('Delete your nickname and win records from the leaderboard server?')) { note.textContent = 'Deleting...'; LB.deleteMe().then(r => { btSave({leaderboard: false}); note.textContent = r && r.ok ? 'Your leaderboard data was deleted.' : 'Could not reach the server. Try again later.'; sync(); }); } }
-    if (t === 'restore') openRestore();
     if (t === 'cloudcode') { const note = el.querySelector('#cloud-note'); if (window.LB && LB.cloud.on()) showCode(LB.cloud.code(), (getProfile() || {}).name); else note.textContent = 'Cloud save is off. Turn it on first.'; }
     if (t === 'cloudsync') { const note = el.querySelector('#cloud-note'); if (!window.LB || !LB.cloud.on()) note.textContent = 'Cloud save is off. Turn it on first.'; else { note.textContent = 'Saving...'; LB.cloud.sync(true).then(r => { note.textContent = r && r.ok ? 'Saved.' : r && r.error === 'too_fast' ? 'Saved a moment ago. Try again in a few seconds.' : 'Could not reach the server. It will retry by itself.'; }); } }
-    if (t === 'export') BT.exportSave(); if (t === 'import') BT.importSave(); if (t === 'reset') BT.resetSave(); }
+    if (t === 'export') openExport(); if (t === 'import') openRestore(); if (t === 'reset') BT.resetSave(); }
   });
   el.addEventListener('input', e => {
    const i = e.target;
    if (i.dataset.key === 'vol') { btSave({vol: Number(i.value)}); applyNoise(); }
-   if (i.dataset.timer) { const t = Object.assign({}, btCfg().timers); t[i.dataset.timer] = Number(i.value); btSave({timers: t}); i.nextElementSibling.textContent = lab(i.dataset.timer); }
   });
   el.addEventListener('change', e => { const i = e.target; if (!i.classList.contains('sw')) return;
    if (i.dataset.key === 'cloud') { cloudToggle(i, t => { el.querySelector('#cloud-note').textContent = t; }); return; }
@@ -132,13 +122,40 @@
  }
 
  // ---------- Cloud save screens ----------
+ // ---------- QR codes: show and scan the short restore code ----------
+ const qrPayload = (nick, code) => 'nyxapse:1:' + encodeURIComponent(nick || '') + ':' + code;
+ const qrParse = t => { const m = /^nyxapse:1:([^:]+):(\d{10})$/.exec(String(t || '').trim()); if (!m) return null; try { return {nick: decodeURIComponent(m[1]), code: m[2]}; } catch (e) { return null; } };
+ const loadQR = () => window.NXQR ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'js/qr.js?v=' + BT.build; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+ function drawQR(box, nick, code) { loadQR().then(() => { box.innerHTML = NXQR.svg(qrPayload(nick, code), 200); box.style.display = ''; }).catch(() => {}); }
+ async function scanQR(say, done) {
+  const unsupported = 'Scanning is not supported on this device. Type the nickname and code instead.';
+  if (!window.BarcodeDetector) { say(unsupported); return; }
+  let det; try { det = new BarcodeDetector({formats: ['qr_code']}); } catch (e) { say(unsupported); return; }
+  const m = modal(head('📷 Scan QR code') + '<video id="sc-v" playsinline muted style="width:100%;border-radius:12px;background:#000"></video><p class="hint" id="sc-n">Point the camera at the QR code on your other device.</p><div class="bt-btns"><button class="bt-btn" id="sc-img">🖼 Use a photo or screenshot</button></div><input type="file" accept="image/*" id="sc-f" hidden>');
+  const v = m.el.querySelector('#sc-v'), note = t => { m.el.querySelector('#sc-n').textContent = t; };
+  let stream = null, dead = false;
+  const stop = () => { dead = true; if (stream) stream.getTracks().forEach(t => t.stop()); };
+  m.el.addEventListener('click', e => { if (e.target.closest('[data-close]') || e.target === m.el) stop(); });
+  const got = txt => { const p = qrParse(txt); if (!p) { note('That is not a NyxApse QR code.'); return false; } stop(); m.close(); done(p); return true; };
+  const loop = async () => { if (dead) return; try { const r = await det.detect(v); if (r.length && got(r[0].rawValue)) return; } catch (e) { /* keep trying */ } setTimeout(loop, 250); };
+  m.el.querySelector('#sc-img').onclick = () => m.el.querySelector('#sc-f').click();
+  m.el.querySelector('#sc-f').onchange = async e => { const f = e.target.files && e.target.files[0]; if (!f) return; try { const r = await det.detect(await createImageBitmap(f)); if (!r.length) note('No QR code found in that picture.'); else got(r[0].rawValue); } catch (err) { note('Could not read that picture.'); } e.target.value = ''; };
+  try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}); if (dead) { stop(); return; } v.srcObject = stream; await v.play(); loop(); }
+  catch (e) { v.style.display = 'none'; note('The camera is not available or not allowed. You can still use a photo or screenshot of the QR code.'); }
+ }
+ function openExport() {
+  if (window.LB && LB.cloud.on() && getProfile()) { showCode(LB.cloud.code(), getProfile().name); return; }
+  const m = modal(head('📤 Export') + '<p class="hint">The short code and QR code come from Cloud save. Turn it on in Settings → Online, then come back here: you get your nickname, a 10-digit code and a QR code to scan on the new device.</p><p class="hint">If you prefer not to use Cloud save, you can still copy the long offline save code.</p><div class="bt-btns"><button class="bt-btn" id="ex-long">📋 Copy long offline code</button><button class="bt-btn pri" data-close>Close</button></div>');
+  m.el.querySelector('#ex-long').onclick = () => BT.exportSave();
+ }
  const needTerms = () => { if (LS.getItem('bt_terms') === '1') return true; if (!confirm('This stores data on the server, so you must be 16 or older (or older if your country requires it) and agree to the Terms (terms.html) and the Privacy Policy (privacy.html).\n\nDo you agree?')) return false; LS.setItem('bt_terms', '1'); return true; };
  function showCode(code, nick) {
   const m = modal(head('🔑 Your restore code') + '<p class="hint"><b>Take a screenshot now</b> and keep it safe. If you clear your data or change phones, you restore your progress with your nickname and this code. Anyone with the code can restore your save, so do not share it.</p>' +
-   '<div class="code-box"><div class="hint">Nickname</div><b>' + esc(nick || '') + '</b><div class="hint">Code</div><div class="code">' + esc(LB.cloud.pretty(code)) + '</div></div>' +
+   '<div class="code-box"><div class="hint">Nickname</div><b>' + esc(nick || '') + '</b><div class="hint">Code</div><div class="code">' + esc(LB.cloud.pretty(code)) + '</div></div><div id="cc-qr" style="display:none;text-align:center;margin:8px 0"></div><p class="hint">On the new device: Settings → Data → Import → Scan QR code.</p>' +
    '<div class="bt-btns"><button class="bt-btn" id="cc-copy">📋 Copy code</button><button class="bt-btn pri" id="cc-ok">Done</button></div><p class="hint">You can see this code again in Settings → Online → Show my code, as long as this app keeps its data.</p>');
   m.el.querySelector('#cc-copy').onclick = () => { try { navigator.clipboard.writeText(code); } catch (e) { /* ignore */ } m.el.querySelector('#cc-copy').textContent = '✅ Copied'; };
   m.el.querySelector('#cc-ok').onclick = () => m.close();
+  drawQR(m.el.querySelector('#cc-qr'), nick, code);
  }
  async function cloudToggle(box, say) {
   if (!window.LB || !LB.configured()) { box.checked = false; say('The online features are not switched on in this version yet.'); return; }
@@ -153,10 +170,12 @@
   }
  }
  function openRestore() {
-  const m = modal(head('☁️ Restore my progress') + '<p class="hint">Enter the nickname and the 10-digit code from your screenshot. This replaces the progress on this device.</p>' +
+  const m = modal(head('☁️ Restore my progress') + '<p class="hint">Scan the QR code, or enter the nickname and the 10-digit code from your screenshot. This replaces the progress on this device.</p>' +
    '<input id="rs-nick" class="bt-in" maxlength="16" placeholder="Nickname" autocomplete="off"><input id="rs-code" class="bt-in" inputmode="numeric" maxlength="11" placeholder="Code (10 digits)" autocomplete="off">' +
-   '<p class="err" id="rs-err"></p><div class="bt-btns"><button class="bt-btn pri" id="rs-go">Restore</button></div>');
+   '<p class="err" id="rs-err"></p><div class="bt-btns"><button class="bt-btn pri" id="rs-go">Restore</button><button class="bt-btn" id="rs-scan">📷 Scan QR code</button></div><div class="bt-btns"><button class="bt-btn" id="rs-long">📋 I have a long save code</button></div>');
   const err = t => { m.el.querySelector('#rs-err').textContent = t; };
+  m.el.querySelector('#rs-long').onclick = () => { m.close(); BT.importSave(); };
+  m.el.querySelector('#rs-scan').onclick = () => scanQR(err, p => { m.el.querySelector('#rs-nick').value = p.nick; m.el.querySelector('#rs-code').value = p.code; m.el.querySelector('#rs-go').click(); });
   m.el.querySelector('#rs-go').onclick = async () => {
    if (!window.LB || !LB.configured()) { err('The online features are not switched on in this version yet.'); return; }
    err('Restoring...'); const r = await LB.cloud.restore(m.el.querySelector('#rs-nick').value, m.el.querySelector('#rs-code').value);

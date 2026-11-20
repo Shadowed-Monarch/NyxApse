@@ -4,6 +4,9 @@
     <!-- INTERNET: only used by the optional online leaderboard. VIBRATE: win/lose feedback. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- CAMERA: only to scan the restore QR code on request. Nothing is recorded or sent. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="false"

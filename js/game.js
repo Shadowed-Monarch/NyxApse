@@ -92,7 +92,7 @@ const BT = {}; window.BT = BT;   // const globals are not on window by themselve
  function verify() { verifySig(); checkLedger(); }
  verify();
  BT.TIMERS = {math: {base: 30, min: -10, max: 20}, dots: {base: 9, min: -3, max: 10}, memory: {base: 3, min: -1, max: 3}, focus: {base: 30, min: -10, max: 20}, aim: {base: 25, min: -10, max: 20}, reflex: {base: 20, min: -10, max: 20, inverse: true}, odd: {base: 30, min: -10, max: 20}};
- BT.off = k => { const d = BT.TIMERS[k]; if (!d) return 0; const o = Number(((btCfg().timers) || {})[k]) || 0; return Math.max(d.min, Math.min(d.max, Math.round(o))); };
+ BT.off = () => 0;   // game timers are no longer adjustable (old saved timer settings are ignored)
  BT.time = (k, base) => Math.max(3, Math.round(base + BT.off(k)));
  BT.timeFactor = k => { const d = BT.TIMERS[k]; if (!d) return 1; const o = BT.off(k); return Math.max(0.5, Math.min(1.5, d.inverse ? (d.base + o) / d.base : d.base / (d.base + o))); };
  BT.reward = l => l <= 30 ? l * 5 : 150 + Math.floor(Math.sqrt(l - 30)) * 5;
