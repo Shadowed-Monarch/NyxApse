@@ -128,20 +128,32 @@
  const loadQR = () => window.NXQR ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'js/qr.js?v=' + BT.build; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
  function drawQR(box, nick, code) { loadQR().then(() => { box.innerHTML = NXQR.svg(qrPayload(nick, code), 200); box.style.display = ''; }).catch(() => {}); }
  async function scanQR(say, done) {
-  const unsupported = 'Scanning is not supported on this device. Type the nickname and code instead.';
-  if (!window.BarcodeDetector) { say(unsupported); return; }
-  let det; try { det = new BarcodeDetector({formats: ['qr_code']}); } catch (e) { say(unsupported); return; }
-  const m = modal(head('📷 Scan QR code') + '<video id="sc-v" playsinline muted style="width:100%;border-radius:12px;background:#000"></video><p class="hint" id="sc-n">Point the camera at the QR code on your other device.</p><div class="bt-btns"><button class="bt-btn" id="sc-img">🖼 Use a photo or screenshot</button></div><input type="file" accept="image/*" id="sc-f" hidden>');
+  try { await loadQR(); } catch (e) { say('Could not load the scanner. Type the nickname and code instead.'); return; }
+  let det = null; try { if (window.BarcodeDetector) det = new BarcodeDetector({formats: ['qr_code']}); } catch (e) { det = null; }   // the phone's own reader if it has one, else ours
+  const cv = document.createElement('canvas'), cx = cv.getContext('2d', {willReadFrequently: true});
+  const read = async (src, sw, sh, maxSide) => {
+   if (det) { try { const r = await det.detect(src); if (r.length) return r[0].rawValue; } catch (e) { /* use ours */ } }
+   const sc = Math.min(1, maxSide / Math.max(sw, sh)); cv.width = Math.max(1, Math.round(sw * sc)); cv.height = Math.max(1, Math.round(sh * sc));
+   cx.drawImage(src, 0, 0, cv.width, cv.height); const im = cx.getImageData(0, 0, cv.width, cv.height);
+   return NXQR.decode(im.data, im.width, im.height);
+  };
+  const m = modal(head('📷 Scan QR code') + '<video id="sc-v" playsinline muted style="width:100%;border-radius:12px;background:#000"></video><p class="hint" id="sc-n">Starting the camera...</p><div class="bt-btns"><button class="bt-btn" id="sc-img">🖼 Use a photo or screenshot</button></div><input type="file" accept="image/*" id="sc-f" hidden>');
   const v = m.el.querySelector('#sc-v'), note = t => { m.el.querySelector('#sc-n').textContent = t; };
   let stream = null, dead = false;
   const stop = () => { dead = true; if (stream) stream.getTracks().forEach(t => t.stop()); };
   m.el.addEventListener('click', e => { if (e.target.closest('[data-close]') || e.target === m.el) stop(); });
   const got = txt => { const p = qrParse(txt); if (!p) { note('That is not a NyxApse QR code.'); return false; } stop(); m.close(); done(p); return true; };
-  const loop = async () => { if (dead) return; try { const r = await det.detect(v); if (r.length && got(r[0].rawValue)) return; } catch (e) { /* keep trying */ } setTimeout(loop, 250); };
+  const loop = async () => { if (dead) return; try { if (v.videoWidth) { const r = await read(v, v.videoWidth, v.videoHeight, 960); if (r && got(r)) return; } } catch (e) { /* keep trying */ } setTimeout(loop, 200); };
   m.el.querySelector('#sc-img').onclick = () => m.el.querySelector('#sc-f').click();
-  m.el.querySelector('#sc-f').onchange = async e => { const f = e.target.files && e.target.files[0]; if (!f) return; try { const r = await det.detect(await createImageBitmap(f)); if (!r.length) note('No QR code found in that picture.'); else got(r[0].rawValue); } catch (err) { note('Could not read that picture.'); } e.target.value = ''; };
-  try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}); if (dead) { stop(); return; } v.srcObject = stream; await v.play(); loop(); }
-  catch (e) { v.style.display = 'none'; note('The camera is not available or not allowed. You can still use a photo or screenshot of the QR code.'); }
+  m.el.querySelector('#sc-f').onchange = async e => {
+   const f = e.target.files && e.target.files[0]; if (!f) return; note('Reading the picture...');
+   try { const bmp = await createImageBitmap(f); let r = null; for (const side of [1400, 900, 600]) { r = await read(bmp, bmp.width, bmp.height, side); if (r) break; } if (!r) note('No QR code found in that picture. Try a sharper, closer one.'); else got(r); }
+   catch (err) { note('Could not read that picture.'); }
+   e.target.value = '';
+  };
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { v.style.display = 'none'; note('The camera cannot be used here (it needs the updated app or a secure page). You can still use a photo or screenshot of the QR code.'); return; }
+  try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}); if (dead) { stop(); return; } v.srcObject = stream; await v.play(); note('Point the camera at the QR code on your other device.'); loop(); }
+  catch (e) { v.style.display = 'none'; note(e && e.name === 'NotAllowedError' ? 'Camera permission was denied. Allow the camera for this app in your phone settings, or use a photo or screenshot of the QR code.' : 'The camera is not available (' + ((e && e.name) || 'error') + '). You can still use a photo or screenshot of the QR code.'); }
  }
  function openExport() {
   if (window.LB && LB.cloud.on() && getProfile()) { showCode(LB.cloud.code(), getProfile().name); return; }
