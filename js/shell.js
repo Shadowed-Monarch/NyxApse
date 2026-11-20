@@ -153,7 +153,16 @@
   };
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { v.style.display = 'none'; note('The camera cannot be used here (camera API missing; secure page: ' + (window.isSecureContext ? 'yes' : 'no') + '). You can still use a photo or screenshot of the QR code.'); return; }
   try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}); if (dead) { stop(); return; } v.srcObject = stream; await v.play(); note('Point the camera at the QR code on your other device.'); loop(); }
-  catch (e) { v.style.display = 'none'; note(e && e.name === 'NotAllowedError' ? 'Camera permission was denied. Allow the camera for this app in your phone settings, or use a photo or screenshot of the QR code.' : 'The camera is not available (' + ((e && e.name) || 'error') + '). You can still use a photo or screenshot of the QR code.'); }
+  catch (e) {
+   v.style.display = 'none';
+   let st = ''; try { st = (await navigator.permissions.query({name: 'camera'})).state; } catch (e2) { /* not supported here */ }
+   const inApp = location.protocol === 'file:', tail = ' You can also use a photo or screenshot of the QR code.';
+   note(e && e.name === 'NotAllowedError'
+    ? (inApp ? 'The app was not given the camera. Open Android Settings, then Apps, NyxApse, Permissions, and allow Camera. If Camera is not listed there, install the newest version of the app.'
+       : st === 'denied' ? 'The camera is blocked for this site. Tap the lock icon in the address bar, open Permissions, allow Camera, then reload.'
+       : 'The camera was not allowed. Allow it when your browser asks.') + tail
+    : 'The camera is not available (' + ((e && e.name) || 'error') + ').' + tail);
+  }
  }
  function openExport() {
   if (window.LB && LB.cloud.on() && getProfile()) { showCode(LB.cloud.code(), getProfile().name); return; }
