@@ -228,7 +228,14 @@ html.bt-anim .nx-reveal.nx-in { opacity: 1; transform: none; transition: opacity
 .code-box { text-align: center; padding: 12px; margin: 10px 0; border: 2px dashed var(--accent); border-radius: 14px; }
 .code-box .code { font-size: 2rem; font-weight: bold; letter-spacing: .12em; font-variant-numeric: tabular-nums; margin-top: 4px; }
 
-/* compact rows so the timers tab fits on a phone without scrolling */
-.tab[data-tab="games"] .row { padding-top: 1px; padding-bottom: 1px; } .tab[data-tab="games"] .hint { margin: 2px 0; }
-.tab[data-tab="games"] h3 { margin: 4px 0; }
-.tab[data-tab="games"] > h3 { display: none; }
+/* ---------- Settings: a side panel that slides in from the right ---------- */
+.bt-modal.bt-side { align-items: stretch; justify-content: flex-end; padding: 0; }
+.bt-modal.bt-side > .bt-card { width: min(420px, 92vw); max-width: none; height: 100%; max-height: none; border-radius: 20px 0 0 20px; border-right: 0; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px calc(22px + env(safe-area-inset-bottom, 0px)); box-shadow: -8px 0 28px rgba(0, 0, 0, .45); overscroll-behavior: contain; }
+.bt-side .bt-head { position: sticky; top: calc(-14px - env(safe-area-inset-top, 0px)); z-index: 3; background: var(--panel, #111); margin: calc(-14px - env(safe-area-inset-top, 0px)) -16px 0; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 8px; }
+.bt-side .tabs { flex-wrap: wrap; overflow: visible; }
+@keyframes nx-side { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes nx-side-out { to { transform: translateX(100%); } }
+html.bt-anim .bt-modal.bt-side > .bt-card { animation: nx-side .28s cubic-bezier(.2, .8, .3, 1) both; }
+html.bt-anim .bt-modal.bt-side.bt-out > .bt-card { animation: nx-side-out .2s ease both; }
+html.bt-anim .bt-side > .bt-card > * { animation: none !important; }
+@media (min-width: 900px) { .bt-modal.bt-side > .bt-card { width: 440px; } }

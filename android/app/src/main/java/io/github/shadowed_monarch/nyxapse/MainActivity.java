@@ -11,6 +11,7 @@ import android.view.KeyEvent;
 import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
 import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -22,6 +23,7 @@ import android.widget.EditText;
 public class MainActivity extends Activity {
     private WebView web;
     private PermissionRequest pendingCam;
+    private ValueCallback<Uri[]> chooserCb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +53,21 @@ public class MainActivity extends Activity {
         // A WebView shows no alert/confirm/prompt boxes on its own. The game uses them
         // (export/import/reset, "not enough coins"), so show them as normal Android dialogs.
         web.setWebChromeClient(new WebChromeClient() {
+            // A WebView ignores <input type="file"> unless the app opens the picker itself.
+            // Used by Import -> Scan QR code -> "Use a photo or screenshot".
+            @Override
+            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (chooserCb != null) chooserCb.onReceiveValue(null);
+                chooserCb = callback;
+                try {
+                    startActivityForResult(params.createIntent(), 8);
+                } catch (Exception e) {
+                    chooserCb = null;
+                    return false;
+                }
+                return true;
+            }
+
             // Camera is only asked for when the player taps "Scan QR code" in Settings.
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
@@ -99,6 +116,16 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState == null) web.loadUrl("file:///android_asset/www/index.html");
         else web.restoreState(savedInstanceState);
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        if (req == 8) {
+            if (chooserCb != null) chooserCb.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data));
+            chooserCb = null;
+            return;
+        }
+        super.onActivityResult(req, res, data);
     }
 
     @Override

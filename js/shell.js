@@ -59,8 +59,8 @@
 
  // ---------- Modals ----------
  let pausedByModal = false;
- function modal(html, locked) {
-  const m = document.createElement('div'); m.className = 'bt-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
+ function modal(html, locked, cls) {
+  const m = document.createElement('div'); m.className = 'bt-modal' + (cls ? ' ' + cls : ''); m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
   if (locked) m.dataset.locked = '1';
   m.innerHTML = '<div class="bt-card">' + html + '</div>';
   const finish = () => { m.remove(); if (pausedByModal && !$('.bt-modal')) { BT.paused = false; BT.sync(); pausedByModal = false; } };
@@ -88,7 +88,7 @@
    '<h3>☁️ Cloud save</h3><div class="row"><span>Back up my progress automatically</span><input type="checkbox" class="sw" data-key="cloud"></div><p class="hint">Off by default. When on, your game progress is stored on the server, so you can restore it after clearing data or on a new phone. For players 16 and older. <a href="privacy.html">Privacy</a></p><div class="bt-btns"><button class="bt-btn" data-act="cloudcode">🔑 Show my code</button><button class="bt-btn" data-act="cloudsync">🔄 Save now</button></div><p class="hint" id="cloud-note"></p>' +
    '</div><div class="tab" data-tab="data"><h3>💾 Data</h3><div class="bt-btns"><button class="bt-btn" data-act="export">📤 Export</button><button class="bt-btn" data-act="import">📥 Import</button><button class="bt-btn" data-act="reset">🗑 Reset</button><button class="bt-btn" data-act="cache">🧹 Clear app cache</button></div>' +
    '<p class="hint">Export shows a short code and a QR code (needs Cloud save on). Import takes the code, a scanned QR, or a photo of one, to move your progress to another device.</p>' +
-   '<p class="hint"><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p></div>');
+   '<p class="hint"><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p></div>', false, 'bt-side');   // a side panel, not a centred popup
   const el = m.el;
   const sync = () => { const c = btCfg();
    el.querySelectorAll('.seg').forEach(s => s.querySelectorAll('button').forEach(b => b.classList.toggle('on', c[s.dataset.key] === b.dataset.v)));
@@ -151,7 +151,7 @@
    catch (err) { note('Could not read that picture.'); }
    e.target.value = '';
   };
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { v.style.display = 'none'; note('The camera cannot be used here (it needs the updated app or a secure page). You can still use a photo or screenshot of the QR code.'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { v.style.display = 'none'; note('The camera cannot be used here (camera API missing; secure page: ' + (window.isSecureContext ? 'yes' : 'no') + '). You can still use a photo or screenshot of the QR code.'); return; }
   try { stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}); if (dead) { stop(); return; } v.srcObject = stream; await v.play(); note('Point the camera at the QR code on your other device.'); loop(); }
   catch (e) { v.style.display = 'none'; note(e && e.name === 'NotAllowedError' ? 'Camera permission was denied. Allow the camera for this app in your phone settings, or use a photo or screenshot of the QR code.' : 'The camera is not available (' + ((e && e.name) || 'error') + '). You can still use a photo or screenshot of the QR code.'); }
  }
