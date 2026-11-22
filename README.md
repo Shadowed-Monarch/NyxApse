@@ -39,24 +39,22 @@ Sixteen ranks, from Student to Nyxborn, with a rank-up celebration and "BP to ne
 * **Daily Streak & Calendar:** Win a level each day to keep your streak. Your first win of the day pays bonus coins (streak days × 10, max 70), and a calendar on the home screen shows every day you played.
 * **Stats:** Streak, total wins, time trained and level per game on the home screen.
 * **Level Select:** Use ◀ ▶ in any game to replay lower levels.
-* **Save Tools:** Export, import or reset your save code in ⚙️ Settings → Data.
+* **Save Tools:** Export, import or reset your progress in ⚙️ Settings → Data. With Cloud save on, Export shows a short code and a **QR code**, and Import can **scan the QR** with the camera (or read a photo or screenshot of it) on the new device. A long offline save code is still there as a fallback.
 * **Earnings Ledger (anti-cheat):** every win is written to a chained, signed log with the game, level, time and reward. Your Brain Power, coins and levels must match the log, and only a real finished round can add to them. Edits made in browser DevTools or the console are undone. It's a strong deterrent, not real security, since everything runs on the player's device.
-* **Settings (⚙️ on every page):** focus sound (brown, pink or white, with volume), sound effects, vibration, theme (dark, light or auto), a **Minimal** style (flat, sleek and fast: no glow, shadows, grain, blur or color animation, and it keeps your colors), a separate **Black & white** switch, a **Colorblind-friendly** switch (safe colors plus a symbol for each color in Focus, ✓/✕ marks in Memory), and switches for glow, grain, confetti, large text and compact layout.
-* **Game Timers:** change the seconds for each game within a safe range. More time is easier, so wins pay a little less; less time pays more.
+* **Settings (⚙️ on every page, opens as a side panel):** focus sound (brown, pink or white, with volume), sound effects, vibration, theme (dark, light or auto), a **Minimal** style (flat, sleek and fast: no glow, shadows, grain, blur or color animation, and it keeps your colors), a separate **Black & white** switch, a **Colorblind-friendly** switch (safe colors plus a symbol for each color in Focus, ✓/✕ marks in Memory), and switches for glow, grain, confetti, large text and compact layout.
 * **Profile & Menu:** pick a nickname and avatar on first launch, see your stats in your profile, and use the menu on the left of the home screen.
 * **Leaderboard (optional):** weekly boards of Brain Power earned, powered by Supabase. Off by default; you join with a nickname and avatar, with no email or account. The server re-checks every win. See `supabase/README.md` to set it up.
 * **Divisions and Seasons:** a ladder separate from your BP rank: Bronze 3 → 2 → 1, then Silver, Gold, Platinum, Diamond, Master and Legend (19 steps). You only see your own group (max 30, same division). Each week the **Ascent Zone** (▲) moves up, the **Drop Zone** (▼) moves down and everyone else is **Steady**; the zone sizes shrink as you climb. A season is a calendar month: at its end your final division is saved, coins are paid and everyone drops 2 steps. Your profile shows your best division with a small number for how many seasons you finished there (🥇²). Tap a name on the board to see that player's profile, and report cheaters.
 * **Privacy:** no ads, no analytics, no tracking. See `privacy.html`.
-* **Sound:** Adjustable-volume brown-noise focus sound, plus win/lose sounds and vibration.
+* **Sound:** Adjustable-volume focus sound (brown, pink or white noise), plus win/lose sounds and vibration.
 * **Math Variety:** Subtraction unlocks at level 4, multiplication at level 8.
 * **Focus Buttons:** Tap color buttons instead of typing.
 * **Daily Challenge:** A different game each day. Win it 2 to 4 times for +60 coins.
-* **Achievements:** 12 badges for wins, streaks, levels, skins and training time, 25 coins each.
 * **Best Times:** Fastest clear is saved per game and level.
 * **How-to-Play Popups:** Shown the first time you open a game (reopen with ?).
 * **Pause Button:** Pause any running game with ⏸.
 * **Confetti:** Celebrates every win and new skin.
-* **Fair Timers:** Timers pause when you switch tabs.
+* **Fair Timers:** Every game has a fixed timer, and it pauses when you switch tabs.
 * **Installable:** Add to your home screen and play offline (PWA).
 * **About Page:** Rules, ranks and tips, linked from the home screen.
 * **Local Progress:** Ranks, levels and skins are saved in your browser's `LocalStorage`.
@@ -72,7 +70,7 @@ Which one is better comes down to taste. Research on background noise and focus 
 NyxApse/
 ├── index.html, about.html, privacy.html
 ├── math.html, dots.html, memory.html,
-│   stroop.html (Focus), aim.html, avoid.html (Reflex), oddout.html, nback.html
+│   stroop.html (Focus), aim.html, avoid.html (Reflex), oddout.html, nback.html, sequence.html
 ├── css/
 │   ├── ui.css                      # shared responsive UI
 │   ├── shell.css                   # settings, menu, shop, minimal look (loads last)
@@ -83,6 +81,7 @@ NyxApse/
 │   ├── shell.js                    # settings, profile, menu, focus sound, leaderboard screens
 │   ├── config.js                   # your Supabase URL and public key (empty by default)
 │   ├── leaderboard.js              # optional online leaderboard client
+│   ├── qr.js                       # makes and reads the restore QR code (original code, no libraries)
 │   └── <page>.js                   # logic for each page
 ├── supabase/                       # database script + setup guide for the leaderboard
 ├── .github/workflows/keepalive.yml # keeps a free Supabase project awake
@@ -107,7 +106,7 @@ NyxApse/
 > **Data Note:** Clearing your site data or browser history will reset your Brain Power, levels, and unlocked skins.
 
 ## 📱 Android app and F-Droid
-The `android/` folder is a small native app that shows the bundled game. See `docs/RELEASE.md` for how to build the APK, publish on F-Droid and change the version.
+The `android/` folder is a small native app that shows the bundled game. It asks for the camera only when you tap **Scan QR code** to restore progress; nothing is recorded or sent. See `docs/RELEASE.md` for how to build the APK, publish on F-Droid and change the version.
 
 ## 📄 License
 MIT, see the `LICENSE` file.
@@ -125,9 +124,9 @@ Developed and owned by **Shadowed**.
 
 ## Newest additions
 * **Daily challenge:** 2 or 3 different games a day (the same for everyone), played at your own level. After each one a popup counts down and opens the next game by itself (you can tap Stay).
-* **Settings in tabs:** Sound, Look, Effects, Games, Online, Data. Every tab fits on a phone screen.
+* **Settings side panel:** Settings slides in from the right with tabs for Sound, Look, Effects, Online and Data. It fits a phone screen and closes with ✕, a tap outside or Esc.
 * **30 drawn profile icons** (people, shadow, fire and game themes) next to the emoji avatars. They are original SVG drawings made by `tools/gen_avatars.py`.
 * **Nickname filter:** one English word list (`tools/gen_namefilter.py`) generates both the app check and the server check. It catches tricks like `sh.t`, `f u c k`, `$h1t` and stretched letters, and it keeps an allowlist so innocent names (Scunthorpe, Peacock) pass. Edit the lists in the tool, run it, and re-run `supabase/schema.sql`. Regression test: `node tools/test_namefilter.js`.
-* **Cloud save (optional, 16+):** automatic backup with a 10-digit code. After clearing data or on a new phone, tap "I have a restore code" and enter your nickname and the code. Wrong guesses lock a nickname for an hour. Export and Import still work as a manual backup.
+* **Cloud save (optional, 16+):** automatic backup with a 10-digit code. After clearing data or on a new phone, open Settings → Data → Import and either scan the QR code or enter your nickname and the 10-digit code. Wrong guesses lock a nickname for an hour. A long offline save code still works as a manual backup (Export → Copy long offline code).
 * **Leaderboard age:** 16 or older, or older where your country requires it.
 
