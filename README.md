@@ -129,4 +129,3 @@ Developed and owned by **Shadowed**.
 * **Nickname filter:** one English word list (`tools/gen_namefilter.py`) generates both the app check and the server check. It catches tricks like `sh.t`, `f u c k`, `$h1t` and stretched letters, and it keeps an allowlist so innocent names (Scunthorpe, Peacock) pass. Edit the lists in the tool, run it, and re-run `supabase/schema.sql`. Regression test: `node tools/test_namefilter.js`.
 * **Cloud save (optional, 16+):** automatic backup with a 10-digit code. After clearing data or on a new phone, open Settings → Data → Import and either scan the QR code or enter your nickname and the 10-digit code. Wrong guesses lock a nickname for an hour. A long offline save code still works as a manual backup (Export → Copy long offline code).
 * **Leaderboard age:** 16 or older, or older where your country requires it.
-
