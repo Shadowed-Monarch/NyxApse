@@ -7,11 +7,13 @@
  const getS = () => { try { return JSON.parse(LS.getItem(SK)); } catch (e) { return null; } };
  const putS = r => LS.setItem(SK, JSON.stringify({access_token: r.access_token, refresh_token: r.refresh_token, expires_at: r.expires_at || Math.floor(Date.now() / 1000) + (r.expires_in || 3600), uid: r.user && r.user.id}));
 
+ // New-style keys (sb_publishable_...) are not JWTs, so they go in the apikey header only. Only a real session token (or an old-style eyJ... key) is sent as Bearer.
+ const authHeaders = token => { const h = {'Content-Type': 'application/json', apikey: C.anonKey}; const t = token || C.anonKey; if (token || /^eyJ/.test(C.anonKey)) h.Authorization = 'Bearer ' + t; return h; };
  async function call(path, body, token) {
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 9000);
   try {
    const res = await fetch(C.supabaseUrl.replace(/\/+$/, '') + path, {method: 'POST', signal: ctl.signal,
-    headers: {'Content-Type': 'application/json', apikey: C.anonKey, Authorization: 'Bearer ' + (token || C.anonKey)}, body: JSON.stringify(body || {})});
+    headers: authHeaders(token), body: JSON.stringify(body || {})});
    let data = null; try { data = await res.json(); } catch (e) {}
    if (!res.ok) { const err = new Error('http_' + res.status); err.status = res.status; err.data = data; throw err; }
    return data;

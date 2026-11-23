@@ -284,6 +284,7 @@
    try {
     const game = el.querySelector('#lb-game').value, r = await LB.board(game);
     const rows = r.rows || [], hasDiv = r.division !== null && r.division !== undefined;
+    showJoin(hasDiv);
     meta.innerHTML = hasDiv
      ? '<b style="color:' + LB.TIERS[LB.tierOf(r.division)][2] + '">' + LB.shield(r.division, 22) + ' ' + LB.divName(r.division) + '</b> · group of ' + r.group_size + '<br>Week ends in ' + left(r.resets_in || 0) + ' · season ends in ' + left(r.season_resets_in || 0)
      : 'This week · Brain Power earned · resets in ' + left(r.resets_in || 0);
@@ -293,12 +294,12 @@
    } catch (e) { const c = e && e.message; meta.textContent = ''; body.innerHTML = '<p class="hint">Can\'t reach the leaderboard right now' + (c ? ' (' + esc(c) + ')' : '') + '. ' + lbHelp(c) + 'Your progress is safe, and your wins are sent when you are back online.</p>'; }
   };
   body.onclick = e => { const row = e.target.closest('.lb-row[data-nick]'); if (row) openPlayer(row.dataset.nick); };
-  const showJoin = () => {
-   joinBox.innerHTML = btCfg().leaderboard ? '' : '<p class="hint">You are not on the leaderboard yet. The leaderboard is for players 16 and older (or older if your country requires it). Joining shares your nickname, avatar and win records, and you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</p><button class="bt-btn pri" id="lb-on">Show me on the leaderboard</button><p class="err" id="lb-msg"></p>';
+  const showJoin = joined => {   // joined = what the server says; the local switch alone is not proof you are on the board
+   joinBox.innerHTML = joined ? '' : '<p class="hint">You are not on the leaderboard yet. The leaderboard is for players 16 and older (or older if your country requires it). Joining shares your nickname, avatar and win records, and you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</p><button class="bt-btn pri" id="lb-on">Show me on the leaderboard</button><p class="err" id="lb-msg"></p>';
    const b = joinBox.querySelector('#lb-on');
-   if (b) b.onclick = async () => { if (await setLeaderboard(true, t => { joinBox.querySelector('#lb-msg').textContent = t; })) { showJoin(); setTimeout(load, 1500); } };
+   if (b) b.onclick = async () => { if (await setLeaderboard(true, t => { joinBox.querySelector('#lb-msg').textContent = t; })) { showJoin(true); setTimeout(load, 1500); } };
   };
-  el.querySelector('#lb-game').onchange = load; el.querySelector('#lb-ref').onclick = load; showJoin(); load();
+  el.querySelector('#lb-game').onchange = load; el.querySelector('#lb-ref').onclick = load; showJoin(!!btCfg().leaderboard); load();
  }
 
  // ---------- Daily challenge popup ----------
