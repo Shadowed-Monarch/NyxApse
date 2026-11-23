@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
     <meta property="og:title" content="NyxApse - Master your mind speed">
-    <meta property="og:description" content="6 brain games, ranks, skins and daily streaks. Free to play.">
+    <meta property="og:description" content="10 brain games, ranks, skins and daily streaks. Free to play.">
     <meta property="og:image" content="https://shadowed-monarch.github.io/NyxApse/logo.png">
     <link rel="stylesheet" href="css/index.css?v=1.0.0">
     <link rel="stylesheet" href="css/ui.css?v=1.0.0">
@@ -41,7 +41,6 @@
         <p>Master your mind speed.</p>
         <div class="dev-credit">DEVELOPED BY SHADOWED</div>
         <div id="bt-stats" class="dev-credit" style="line-height:1.8"></div>
-        <div id="bt-daily" style="margin-top:10px;font-size:0.85rem;color:var(--text)"></div>
     </div>
 
     <div class="rank-container">
@@ -53,9 +52,20 @@
         <div id="next-rank-info" style="color:var(--subtext); font-size:0.8rem; margin-top:10px;"></div>
     </div>
 
+    <div class="quick-row">
+        <button class="quick-btn" onclick="NX.openDaily()">🎯 Daily challenge <small id="daily-state"></small></button>
+        <button class="quick-btn" onclick="NX.openRanks()">🏆 Leaderboard</button>
+        <button class="quick-btn" onclick="NX.openAch()">🏅 Achievements <small id="ach-state"></small></button>
+        <button class="quick-btn" onclick="toggleShop()">🎨 Skin shop</button>
+    </div>
+
     <div class="section-label">PRACTICE MODULES</div>
 
     <div class="game-grid">
+        <a href="grammar.html" class="game-card">
+            <img src="grammar.png" alt="Grammar">
+            <h3>GRAMMAR</h3>
+        </a>
         <a href="math.html" class="game-card">
             <img src="maths.png" alt="Math">
             <h3>MATH</h3>
@@ -94,15 +104,11 @@
         </a>
     </div>
 
-    <button onclick="toggleShop()" style="margin-top:10px; padding:12px 30px; font-weight:bold; background:var(--card); color:var(--text); border:2px solid var(--accent); border-radius:25px; cursor:pointer;">
-        🎨 OPEN SKIN SHOP
-    </button>
     
     <div class="section-label" style="margin-top:30px">STREAK CALENDAR</div>
     <div id="bt-cal"></div>
 
-    <div class="section-label" style="margin-top:20px">ACHIEVEMENTS</div>
-    <div id="bt-ach" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:90%;max-width:800px;margin-bottom:40px"></div>
+<div style="height:40px"></div>
 
     <div id="shop-overlay">
         <h2 style="color:var(--text); margin-bottom:8px;">CHOOSE SKIN</h2>
@@ -119,7 +125,9 @@
         <button onclick="NX.go('home')"><span>🏠</span>Home</button>
         <button onclick="NX.go('games')"><span>🎮</span>Games</button>
         <button onclick="NX.go('shop')"><span>🛒</span>Shop</button>
+        <button onclick="NX.go('daily')"><span>🎯</span>Daily challenge</button>
         <button onclick="NX.go('ranks')"><span>🏆</span>Leaderboard</button>
+        <button onclick="NX.go('ach')"><span>🏅</span>Achievements</button>
         <button onclick="NX.go('profile')"><span>👤</span>Profile</button>
         <button onclick="NX.go('settings')"><span>⚙️</span>Settings</button>
         <button onclick="NX.go('about')"><span>ℹ️</span>About</button>

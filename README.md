@@ -8,6 +8,7 @@
 ---
 
 ## 🎮 Game Modes
+* **📝 Grammar:** Pick the word or phrase that fills the gap in the sentence. 10 right answers clear the level; each right answer adds 1 second and each wrong one costs 3. Harder grammar and more choices as you level up.
 * **🔢 Math:** Solve falling equations before they hit the bottom.
 * **⚪ Dots:** Tap numbered dots in order to train focus and visual coordination.
 * **🧠 Memory Matrix:** Memorize glowing blocks, then recall them. The grid grows with your level.
@@ -49,12 +50,12 @@ Sixteen ranks, from Student to Nyxborn, with a rank-up celebration and "BP to ne
 * **Sound:** Adjustable-volume focus sound (brown, pink or white noise), plus win/lose sounds and vibration.
 * **Math Variety:** Subtraction unlocks at level 4, multiplication at level 8.
 * **Focus Buttons:** Tap color buttons instead of typing.
-* **Daily Challenge:** A different game each day. Win it 2 to 4 times for +60 coins.
+* **Daily Challenge:** A 🎯 button on the home screen. Two or three games a day; win one level in each for +60 coins.
 * **Best Times:** Fastest clear is saved per game and level.
 * **How-to-Play Popups:** Shown the first time you open a game (reopen with ?).
 * **Pause Button:** Pause any running game with ⏸.
 * **Confetti:** Celebrates every win and new skin.
-* **Fair Timers:** Every game has a fixed timer, and it pauses when you switch tabs.
+* **Fair Timers:** Every game has a fixed timer (it cannot be changed), and it pauses when you switch tabs.
 * **Installable:** Add to your home screen and play offline (PWA).
 * **About Page:** Rules, ranks and tips, linked from the home screen.
 * **Local Progress:** Ranks, levels and skins are saved in your browser's `LocalStorage`.
@@ -70,7 +71,7 @@ Which one is better comes down to taste. Research on background noise and focus 
 NyxApse/
 ├── index.html, about.html, privacy.html
 ├── math.html, dots.html, memory.html,
-│   stroop.html (Focus), aim.html, avoid.html (Reflex), oddout.html, nback.html, sequence.html
+│   grammar.html, stroop.html (Focus), aim.html, avoid.html (Reflex), oddout.html, nback.html, sequence.html
 ├── css/
 │   ├── ui.css                      # shared responsive UI
 │   ├── shell.css                   # settings, menu, shop, minimal look (loads last)
@@ -118,7 +119,7 @@ Developed and owned by **Shadowed**.
 ## Polish
 * **Division badges:** each division family has its own SVG shield shape (so it also works without color) and dots for the step; Legend glows.
 * **Animations:** smooth screen, card and popup transitions, and an animated demo in every game's how-to. All animations turn off in Minimal style and with your device's "reduce motion" setting.
-* **Achievements:** 29 badges, each worth 25 coins.
+* **Achievements:** 30 badges, each worth 25 coins, all behind one 🏅 button on the home screen.
 * **Keyboard:** Space or P pauses any game. N-Back uses Enter or J for SAME.
 * **Settings → Data → Clear app cache:** removes downloaded app files only. Your progress is kept.
 
