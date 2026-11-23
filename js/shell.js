@@ -10,6 +10,7 @@
 
  // ---------- Focus sound: keeps playing from page to page ----------
  let ctx, src, gain, kind = null;
+ const NOISE_TRIM = 0.5;   // white, pink and brown noise play at half of the old loudness (the Volume slider still goes from quiet to loud)
  function buffer(type) {
   const n = ctx.sampleRate * 2, buf = ctx.createBuffer(1, n, ctx.sampleRate), o = buf.getChannelData(0);
   if (type === 'white') { for (let i = 0; i < n; i++) o[i] = (Math.random() * 2 - 1) * 0.5; }
@@ -31,7 +32,7 @@
    if (src) { try { src.stop(); } catch (e) {} }
    src = ctx.createBufferSource(); src.buffer = buffer(c.noise); src.loop = true; src.connect(gain); src.start(); kind = c.noise;
   }
-  gain.gain.setTargetAtTime(c.vol, ctx.currentTime, 0.15);
+  gain.gain.setTargetAtTime(c.vol * NOISE_TRIM, ctx.currentTime, 0.15);
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
  }
  // browsers may block sound until the first tap on a new page
@@ -53,10 +54,12 @@
   tell('Joining...');
   const r = await LB.join(p.name, p.avatar);
   if (r.ok) { btSave({leaderboard: true}); tell('You are on the leaderboard as ' + p.name + '.'); LB.queueSubmit(); return true; }
-  tell(r.error === 'nickname_taken' ? 'That nickname is already taken. Change it in Profile and try again.' : r.error === 'bad_nickname' ? 'That nickname is not allowed. Change it in Profile.' : 'Could not reach the leaderboard. Try again later.');
+  tell(r.error === 'nickname_taken' ? 'That nickname is already taken. Change it in Profile and try again.' : r.error === 'bad_nickname' ? 'That nickname is not allowed. Change it in Profile.' : 'Could not reach the leaderboard' + (r.code ? ' (' + r.code + ')' : '') + '. ' + lbHelp(r.code) + 'Try again later.');
   return false;
  }
 
+ // what a server error code usually means (shown on the leaderboard screens so a problem can be found quickly)
+ const lbHelp = c => /^http_(404|400)$/.test(c || '') ? 'The server database may not be set up yet. ' : /^http_(401|403|422)$/.test(c || '') ? 'The server refused the request (anonymous sign-ins may be switched off). ' : '';
  // ---------- Modals ----------
  let pausedByModal = false;
  function modal(html, locked, cls) {
@@ -83,7 +86,7 @@
    '</div><div class="tab" data-tab="look"><h3>🎨 Look</h3><div class="row"><span>Theme</span>' + seg('theme', [['dark', 'Dark'], ['light', 'Light'], ['auto', 'Auto']]) + '</div>' +
    '<div class="row"><span>Style</span>' + seg('style', [['neon', 'Neon'], ['minimal', 'Minimal']]) + '</div>' +
    '<p class="hint">Minimal is flat, sleek and fast: no glow, shadows, grain, blur or colour animation. It keeps your colours.</p>' + sw('mono', 'Black &amp; white') + sw('cb', 'Colorblind-friendly (symbols + safe colours)') + sw('big', 'Large text') + sw('compact', 'Compact layout') +
-   '</div><div class="tab" data-tab="effects"><h3>✨ Effects</h3>' + sw('anim', 'Menu and popup animations (not used in Minimal style)') + sw('glow', 'Glow effects') + sw('grain', 'Background grain') + sw('confetti', 'Confetti') + '<p class="hint">Minimal style turns glow, grain and confetti off for speed.</p>' +
+   '</div><div class="tab" data-tab="effects"><h3>✨ Effects</h3>' + sw('anim', 'Menu, popup and page-slide animations (off in Minimal style and when your device asks for reduced motion)') + sw('glow', 'Glow effects') + sw('grain', 'Background grain') + sw('confetti', 'Confetti') + '<p class="hint">Minimal style turns glow, grain and confetti off for speed.</p>' +
    '</div><div class="tab" data-tab="online"><h3>🏆 Leaderboard</h3>' + sw('leaderboard', 'Show me on leaderboards') + '<p class="hint" id="lb-note"></p><div class="bt-btns"><button class="bt-btn" data-act="lbdel">Delete my leaderboard data</button></div>' +
    '<h3>☁️ Cloud save</h3><div class="row"><span>Back up my progress automatically</span><input type="checkbox" class="sw" data-key="cloud"></div><p class="hint">Off by default. When on, your game progress is stored on the server, so you can restore it after clearing data or on a new phone. For players 16 and older. <a href="privacy.html">Privacy</a></p><div class="bt-btns"><button class="bt-btn" data-act="cloudcode">🔑 Show my code</button><button class="bt-btn" data-act="cloudsync">🔄 Save now</button></div><p class="hint" id="cloud-note"></p>' +
    '</div><div class="tab" data-tab="data"><h3>💾 Data</h3><div class="bt-btns"><button class="bt-btn" data-act="export">📤 Export</button><button class="bt-btn" data-act="import">📥 Import</button><button class="bt-btn" data-act="reset">🗑 Reset</button><button class="bt-btn" data-act="cache">🧹 Clear app cache</button></div>' +
@@ -287,7 +290,7 @@
     body.innerHTML = rows.length ? rows.map(x => '<div class="lb-row' + (x.me ? ' me' : '') + (x.zone ? ' z-' + x.zone : '') + '" data-nick="' + esc(x.nick) + '"><b>#' + x.rank + '</b><span class="zone" title="' + (x.zone || '') + '">' + zoneMark(x.zone) + '</span><span class="lb-av">' + AV(x.avatar, 26) + '</span><span class="lb-nm">' + esc(x.nick) + '</span><b>' + Number(x.bp).toLocaleString() + '</b></div>').join('') +
      (game === 'all' && hasDiv ? '<p class="hint">▲ Ascent Zone moves up · • Steady · ▼ Drop Zone moves down. You need at least 1 win this week to move up. Tap a name to see their profile.</p>' : '<p class="hint">Tap a name to see their profile.</p>') : '<p class="hint">' + (hasDiv ? 'No scores yet this week. Be the first!' : 'Join the leaderboard to get a division and a group.') + '</p>';
     LB.claim(); LB.me();
-   } catch (e) { meta.textContent = ''; body.innerHTML = '<p class="hint">Can\'t reach the leaderboard right now. Your progress is safe, and your wins are sent when you are back online.</p>'; }
+   } catch (e) { const c = e && e.message; meta.textContent = ''; body.innerHTML = '<p class="hint">Can\'t reach the leaderboard right now' + (c ? ' (' + esc(c) + ')' : '') + '. ' + lbHelp(c) + 'Your progress is safe, and your wins are sent when you are back online.</p>'; }
   };
   body.onclick = e => { const row = e.target.closest('.lb-row[data-nick]'); if (row) openPlayer(row.dataset.nick); };
   const showJoin = () => {
@@ -296,6 +299,21 @@
    if (b) b.onclick = async () => { if (await setLeaderboard(true, t => { joinBox.querySelector('#lb-msg').textContent = t; })) { showJoin(); setTimeout(load, 1500); } };
   };
   el.querySelector('#lb-game').onchange = load; el.querySelector('#lb-ref').onclick = load; showJoin(); load();
+ }
+
+ // ---------- Daily challenge popup ----------
+ function openDaily() {
+  const st = BT.dailyState(), next = st.list.find(k => !st.done.includes(k)), sk = BT.streak();
+  const rows = st.list.map(k => { const d = st.done.includes(k); return '<a class="dc-row' + (d ? ' done' : '') + '" href="' + BT.FILES[k] + '"><span>' + (d ? '✅' : '▶') + '</span><b>' + esc(BT_GAMES[k]) + '</b><small>' + (d ? 'Done' : 'Win one level') + '</small></a>'; }).join('');
+  modal(head('🎯 Daily challenge') + '<p class="hint">' + (st.complete ? '✅ All done for today! Come back tomorrow for a new challenge.' : 'Win one level in each game below today. Everyone gets the same games. Finish them all for <b>+60 🪙</b>.') + '</p><div class="dc-list">' + rows + '</div>' +
+   (!st.complete && next ? '<div class="bt-btns"><a class="bt-btn pri" href="' + BT.FILES[next] + '">▶ Start ' + esc(BT_GAMES[next]) + '</a></div>' : '') +
+   '<p class="hint">🔥 Streak: <b>' + sk + '</b> day' + (sk === 1 ? '' : 's') + '. Days you finish the challenge get a ⭐ on the streak calendar.</p>');
+ }
+ // ---------- Achievements popup ----------
+ function openAch() {
+  const list = BT.ach(), n = list.filter(a => a.got).length;
+  modal(head('🏅 Achievements') + '<p class="hint">' + n + ' of ' + list.length + ' earned. Each badge pays 25 🪙.</p><div class="ach-grid">' +
+   list.map(a => '<div class="ach' + (a.got ? ' got' : '') + '"><div class="ach-i">' + a.icon + '</div>' + esc(a.name) + '</div>').join('') + '</div>');
  }
 
  // ---------- Menu ----------
@@ -307,17 +325,18 @@
   if (where === 'games') { const g = $('.game-grid'); if (g) g.scrollIntoView({behavior: 'smooth', block: 'center'}); }
   if (where === 'shop' && typeof toggleShop === 'function') toggleShop();
   if (where === 'ranks') openRanks();
+  if (where === 'daily') openDaily();
+  if (where === 'ach') openAch();
   if (where === 'about') navigate('about.html');
   if (where === 'privacy') navigate('privacy.html');
   if (where === 'terms') navigate('terms.html');
  }
- // ---------- Page transitions: games zoom in, info pages slide in, going home slides back ----------
- const GAME_PAGE = /(^|\/)(math|dots|memory|stroop|aim|avoid|oddout|nback|sequence)\.html/;
+ // ---------- Page transitions: pages slide in from the right, going home slides back. Off in Minimal style, with reduced motion, or when animations are switched off ----------
  function navigate(url) {
   const root = document.documentElement;
   if (!root.classList.contains('bt-anim')) { location.href = url; return; }
   const bare = String(url).split('?')[0].split('#')[0];
-  const fx = GAME_PAGE.test(bare) ? 'zoom' : (/index\.html$/.test(bare) || /\/$/.test(bare)) ? 'back' : 'slide';
+  const fx = (/index\.html$/.test(bare) || /\/$/.test(bare)) ? 'back' : 'slide';
   try { sessionStorage.setItem('nx_enter', fx); } catch (e) { /* ignore */ }
   root.classList.add('nx-leave-' + fx);
   setTimeout(() => { location.href = url; }, 230);
@@ -351,7 +370,7 @@
   try { if (window.caches) { const k = await caches.keys(); await Promise.all(k.map(x => caches.delete(x))); } const rs = navigator.serviceWorker ? await navigator.serviceWorker.getRegistrations() : []; await Promise.all(rs.map(r => r.unregister())); } catch (err) { /* ignore */ }
   location.reload();
  });
- window.NX = {openSettings, openProfile, openRanks, openPlayer, navigate, go, menu: () => document.body.classList.toggle('menu-open')};
+ window.NX = {openSettings, openProfile, openRanks, openPlayer, openDaily, openAch, navigate, go, menu: () => document.body.classList.toggle('menu-open')};
 
  document.addEventListener('DOMContentLoaded', () => {
   // all files must come from the same version (a half-finished upload or a cached old file shows up here)

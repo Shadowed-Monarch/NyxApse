@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draws the 30 profile icons (original, flat style) and writes js/avatars.js.  Run: python3 tools/gen_avatars.py"""
+"""Draws the 50 profile icons (original, flat style) and writes js/avatars.js.  Run: python3 tools/gen_avatars.py"""
 import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SK = ['#f3d2b3', '#e0ac7e', '#b9794f', '#8a5636']
@@ -44,12 +44,34 @@ add('Sequence', '#2c1f45', '<path d="M16 46 L32 32 L48 18" fill="none" stroke="#
 add('N-Back', '#1d2330', ''.join('<rect x="%d" y="%d" width="14" height="14" rx="4" fill="%s"/>' % (11 + c * 17, 11 + r * 17, '#ff77ff' if (r, c) == (1, 1) else '#4b5568') for r in range(3) for c in range(3)))
 add('Rocket', '#16213a', '<path d="M32 6 Q46 18 44 40 L32 48 L20 40 Q18 18 32 6Z" fill="#eceff1"/><circle cx="32" cy="26" r="6" fill="#4fc3f7"/><path d="M20 38 L10 50 L22 46Z M44 38 L54 50 L42 46Z" fill="#e53935"/><path d="M26 50 Q32 62 38 50Z" fill="#ff9800"/>')
 add('Crown', '#34264f', '<path d="M8 48 L12 20 L24 32 L32 14 L40 32 L52 20 L56 48Z" fill="#ffc107"/><rect x="8" y="48" width="48" height="7" rx="2" fill="#ff9800"/><circle cx="12" cy="20" r="3.4" fill="#ffecb3"/><circle cx="32" cy="14" r="3.4" fill="#ffecb3"/><circle cx="52" cy="20" r="3.4" fill="#ffecb3"/><circle cx="32" cy="40" r="3.4" fill="#e53935"/>')
-assert len(ICONS) == 30, len(ICONS)
-ids = ['i%02d' % (n + 1) for n in range(30)]
+
+# ---- creatures and objects with no eyes (20 more) ----
+add('Dragon', '#16352b', '<path d="M6 50 Q8 32 22 28 Q26 14 42 14 L58 20 L51 27 L58 33 L46 36 Q44 48 30 52 Q16 56 6 50Z" fill="#43a047"/><path d="M26 22 L30 7 L36 20Z" fill="#fdd835"/><path d="M38 16 L45 5 L47 17Z" fill="#fdd835"/><path d="M14 44 Q30 50 44 38" fill="none" stroke="#a5d6a7" stroke-width="4" stroke-linecap="round"/><path d="M10 40 L6 34 L14 36Z M16 34 L14 27 L21 32Z" fill="#2e7d32"/>')
+add('Baby dragon', '#2a2150', '<ellipse cx="32" cy="38" rx="17" ry="15" fill="#9575cd"/><ellipse cx="32" cy="43" rx="10" ry="8" fill="#d1c4e9"/><path d="M18 24 L14 10 L26 20Z M46 24 L50 10 L38 20Z" fill="#ffd54f"/><circle cx="32" cy="29" r="12" fill="#9575cd"/><path d="M28 36 Q32 39 36 36" fill="none" stroke="#4527a0" stroke-width="1.8" stroke-linecap="round"/><path d="M16 40 Q4 34 6 24 Q16 28 20 36Z M48 40 Q60 34 58 24 Q48 28 44 36Z" fill="#b39ddb"/>')
+add('Fire dragon', '#3a1414', '<path d="M6 48 Q8 30 22 26 Q26 12 42 12 L56 18 L50 25 L56 30 L46 33 Q44 46 30 50 Q16 54 6 48Z" fill="#e53935"/><path d="M26 20 L30 5 L36 18Z" fill="#ffecb3"/><path d="M38 14 L45 3 L47 15Z" fill="#ffecb3"/><path d="M52 30 Q60 28 62 36 Q58 34 56 40 Q52 36 52 30Z" fill="#ff9800"/><path d="M55 33 Q58 33 58 37 Q56 36 55 38Z" fill="#ffeb3b"/><path d="M14 42 Q30 48 44 36" fill="none" stroke="#ff8a65" stroke-width="4" stroke-linecap="round"/>')
+add('Ice dragon', '#10304a', '<path d="M6 50 Q8 32 22 28 Q26 14 42 14 L58 20 L51 27 L58 33 L46 36 Q44 48 30 52 Q16 56 6 50Z" fill="#4fc3f7"/><path d="M26 22 L30 7 L36 20Z M38 16 L45 5 L47 17Z" fill="#e1f5fe"/><path d="M14 44 Q30 50 44 38" fill="none" stroke="#e1f5fe" stroke-width="4" stroke-linecap="round"/><path d="M12 30 L12 22 M8 26 L16 26 M9.5 23.5 L14.5 28.5 M14.5 23.5 L9.5 28.5" stroke="#e1f5fe" stroke-width="1.6" stroke-linecap="round"/>')
+add('Dragon egg', '#2b1f3a', '<path d="M32 6 Q50 14 50 38 Q50 58 32 58 Q14 58 14 38 Q14 14 32 6Z" fill="#7e57c2"/><path d="M20 26 L28 30 L24 36 L32 40 L28 48" fill="none" stroke="#d1c4e9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="40" cy="26" r="3.4" fill="#b39ddb"/><circle cx="42" cy="42" r="4.6" fill="#b39ddb"/><circle cx="22" cy="46" r="3" fill="#b39ddb"/>')
+add('Dragon wing', '#241a33', '<path d="M8 54 L14 12 Q18 22 24 24 Q26 12 34 8 Q36 20 42 22 Q48 14 56 14 Q52 36 44 46 Q34 52 8 54Z" fill="#8e24aa"/><path d="M14 12 L10 54 M24 24 L22 52 M34 8 L32 50 M42 22 L40 48" stroke="#ce93d8" stroke-width="1.6" fill="none"/><path d="M8 54 L14 12" stroke="#4a148c" stroke-width="3" stroke-linecap="round"/>')
+add('Ghost with scarf', '#31365f', '<path d="M17 52 V30 Q17 11 32 11 Q47 11 47 30 V52 L41 47 L36 52 L30 47 L25 52 L21 47Z" fill="#f4f5ff"/><path d="M17 34 Q32 42 47 34 V40 Q32 48 17 40Z" fill="#e53935"/><path d="M40 40 L44 54 L38 52Z" fill="#e53935"/>')
+add('Ghost with lantern', '#1c2240', '<path d="M12 54 V32 Q12 13 27 13 Q42 13 42 32 V54 L37 49 L32 54 L27 49 L22 54 L17 49Z" fill="#eceffc"/><path d="M42 36 L50 36" stroke="#9fa8da" stroke-width="2.4" stroke-linecap="round"/><rect x="47" y="36" width="10" height="13" rx="2" fill="#ffd54f"/><path d="M49 36 V32 H55 V36" fill="none" stroke="#9fa8da" stroke-width="2"/><circle cx="52" cy="43" r="8" fill="#ffd54f" opacity=".25"/>')
+add('Ghost with hat', '#2f2a4a', '<path d="M16 54 V34 Q16 17 32 17 Q48 17 48 34 V54 L42 49 L37 54 L32 49 L27 54 L22 49Z" fill="#f2f3ff"/><path d="M14 20 H50 L44 18 Q42 4 32 4 Q22 4 20 18Z" fill="#37474f"/><rect x="19" y="14" width="26" height="4" fill="#ff7043"/><ellipse cx="32" cy="20" rx="20" ry="3" fill="#263238"/>')
+add('Crescent moon', '#141b3d', '<path d="M40 8 A24 24 0 1 0 54 44 A19 19 0 1 1 40 8Z" fill="#ffe082"/><circle cx="22" cy="30" r="3" fill="#ffd54f"/><circle cx="26" cy="44" r="2" fill="#ffd54f"/><circle cx="50" cy="14" r="1.6" fill="#fff"/><circle cx="56" cy="24" r="1.2" fill="#fff"/>')
+add('Star', '#23205a', '<path d="M32 6 L39 24 L58 25 L43 37 L48 56 L32 45 L16 56 L21 37 L6 25 L25 24Z" fill="#ffd740"/><path d="M32 16 L36 26 L46 27 L38 34 L41 44 L32 38Z" fill="#fff59d"/>')
+add('Comet', '#10243f', '<path d="M52 12 Q30 14 8 40 Q30 34 46 28Z" fill="#4fc3f7" opacity=".55"/><path d="M52 12 Q34 24 14 48 Q36 40 50 24Z" fill="#81d4fa" opacity=".6"/><circle cx="48" cy="18" r="9" fill="#fff59d"/><circle cx="48" cy="18" r="5" fill="#ffee58"/>')
+add('Sword', '#2b2d3a', '<path d="M32 4 L38 14 V42 H26 V14Z" fill="#cfd8dc"/><path d="M32 4 L32 42" stroke="#90a4ae" stroke-width="2"/><rect x="16" y="42" width="32" height="6" rx="3" fill="#ffb300"/><rect x="29" y="48" width="6" height="10" fill="#6d4c41"/><circle cx="32" cy="60" r="3.4" fill="#ffb300"/>')
+add('Shield', '#1d2d44', '<path d="M32 6 L54 14 V32 Q54 50 32 60 Q10 50 10 32 V14Z" fill="#1e88e5"/><path d="M32 6 L54 14 V32 Q54 50 32 60Z" fill="#1565c0"/><path d="M32 18 L36 28 L47 29 L38 36 L41 47 L32 41 L23 47 L26 36 L17 29 L28 28Z" fill="#ffd54f"/>')
+add('Wizard hat', '#241b3f', '<path d="M32 4 L46 46 H18Z" fill="#5e35b1"/><ellipse cx="32" cy="48" rx="26" ry="7" fill="#4527a0"/><rect x="20" y="36" width="24" height="5" fill="#ffd54f"/><path d="M30 18 l1.5 3 3 .5 -2.2 2.2 .6 3.1 -2.9 -1.5 -2.9 1.5 .6 -3.1 -2.2 -2.2 3 -.5Z" fill="#ffd54f"/>')
+add('Potion', '#17333a', '<path d="M26 8 H38 V22 L50 46 Q54 56 44 58 H20 Q10 56 14 46 L26 22Z" fill="#cfd8dc" opacity=".9"/><path d="M19 40 H45 L50 48 Q53 56 44 57 H20 Q11 56 14 48Z" fill="#7e57c2"/><rect x="25" y="4" width="14" height="6" rx="2" fill="#a1887f"/><circle cx="28" cy="32" r="2.4" fill="#d1c4e9"/><circle cx="36" cy="27" r="1.6" fill="#d1c4e9"/>')
+add('Gem', '#1a2a4a', '<path d="M16 12 H48 L58 26 L32 58 L6 26Z" fill="#26c6da"/><path d="M6 26 H58 M22 12 L16 26 L32 58 M42 12 L48 26 L32 58 M22 12 L32 26 L42 12" fill="none" stroke="#e0f7fa" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 12 L22 12 L32 26 L16 26Z" fill="#80deea"/>')
+add('Crystal ball', '#2a1f46', '<circle cx="32" cy="29" r="20" fill="#7e57c2"/><circle cx="32" cy="29" r="20" fill="#b388ff" opacity=".35"/><path d="M20 22 Q24 14 34 14" fill="none" stroke="#ede7f6" stroke-width="3" stroke-linecap="round"/><path d="M14 52 Q32 44 50 52 L54 58 H10Z" fill="#ffb300"/><path d="M26 33 l2 -5 2 5 5 2 -5 2 -2 5 -2 -5 -5 -2Z" fill="#fff59d"/>')
+add('Mountain', '#243b5a', '<circle cx="46" cy="16" r="7" fill="#ffe082"/><path d="M2 58 L22 20 L34 40 L42 28 L62 58Z" fill="#5c6bc0"/><path d="M22 20 L28 31 L24 29 L21 33 L17 28Z" fill="#fff"/><path d="M42 28 L47 36 L43 34 L40 37Z" fill="#fff"/>')
+add('Lotus', '#1b3a3a', '<path d="M32 52 Q20 44 22 26 Q30 32 32 52Z M32 52 Q44 44 42 26 Q34 32 32 52Z" fill="#f48fb1"/><path d="M32 54 Q12 50 8 32 Q22 34 32 54Z M32 54 Q52 50 56 32 Q42 34 32 54Z" fill="#ec407a"/><path d="M32 54 Q24 38 32 12 Q40 38 32 54Z" fill="#f8bbd0"/><path d="M6 56 Q32 62 58 56" fill="none" stroke="#4db6ac" stroke-width="3" stroke-linecap="round"/>')
+assert len(ICONS) == 50, len(ICONS)
+ids = ['i%02d' % (n + 1) for n in range(50)]
 body = ',\n  '.join("%s: '%s'" % (i, svg) for i, (n, svg) in zip(ids, ICONS))
 names = ','.join("%s:'%s'" % (i, n) for i, (n, s) in zip(ids, ICONS))
-open(os.path.join(ROOT, 'js/avatars.js'), 'w', encoding='utf-8').write("""/* avatars.js - GENERATED by tools/gen_avatars.py. 30 original profile icons, drawn as SVG (no images to load).
-   A profile avatar is either an emoji or one of these ids (i01..i30). */
+open(os.path.join(ROOT, 'js/avatars.js'), 'w', encoding='utf-8').write("""/* avatars.js - GENERATED by tools/gen_avatars.py. 50 original profile icons, drawn as SVG (no images to load).
+   A profile avatar is either an emoji or one of these ids (i01..i50). */
 const NXAv = (() => {
  const ICONS = {
   %s

@@ -40,10 +40,10 @@ create table if not exists public.entries (
   created_at timestamptz not null default now(),
   unique (player_id, h)
 );
--- (an older version limited the game names here; N-Back needs the limit lifted)
+-- (the list of games is re-written on every run, so new games such as Grammar are added to an existing database)
 alter table public.entries drop constraint if exists entries_game_check;
 alter table public.entries add constraint entries_game_check
-  check (game in ('math','dots','memory','focus','aim','reflex','odd','nback','seq'));
+  check (game in ('grammar','math','dots','memory','focus','aim','reflex','odd','nback','seq'));
 create index if not exists entries_board         on public.entries (week, game, player_id);
 create index if not exists entries_player_recent on public.entries (player_id, created_at);
 create index if not exists entries_player_ts     on public.entries (player_id, ts);
@@ -352,7 +352,7 @@ declare
   v_max    int;
   v_cap    int;
   -- fastest believable clear for each game, in seconds
-  mins     jsonb := '{"math":5,"dots":1.5,"memory":2.5,"focus":4,"aim":3,"odd":3,"nback":25,"seq":3,"reflex":17}'::jsonb;
+  mins     jsonb := '{"grammar":8,"math":5,"dots":1.5,"memory":2.5,"focus":4,"aim":3,"odd":3,"nback":25,"seq":3,"reflex":17}'::jsonb;
 begin
   perform public.settle();
   if uid is null or not exists (select 1 from public.players where id = uid and not banned) then
@@ -455,7 +455,7 @@ declare
 begin
   perform public.settle();
   v_se := v_nm + ((8 - extract(isodow from v_nm)::int) % 7);   -- first Monday of next month = season end
-  if p_game <> 'all' and p_game not in ('math','dots','memory','focus','aim','reflex','odd','nback','seq') then
+  if p_game <> 'all' and p_game not in ('grammar','math','dots','memory','focus','aim','reflex','odd','nback','seq') then
     return jsonb_build_object('rows', '[]'::jsonb, 'me', null, 'week_start', wk, 'resets_in', 0, 'division', null);
   end if;
   select p.dv, p.grp into v_dv, v_grp from public.players p where p.id = uid and not p.banned;
@@ -727,3 +727,7 @@ grant execute on function public.ping()                      to anon, authentica
 -- To ban a cheater:        update public.players set banned  = true  where lower(nickname) = lower('TheirName');
 -- To hide / unhide one:    update public.players set flagged = true  where lower(nickname) = lower('TheirName');
 -- To see who is flagged:   select nickname, strikes from public.players where flagged;
+
+-- ---------- clean-up of an older version ----------
+-- The old timer-scaled reward check is gone: the reward must match the game's formula exactly.
+drop function if exists public.bp_ok(text, int, int);

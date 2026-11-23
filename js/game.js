@@ -6,19 +6,25 @@ const BT_RANKS = [
 {name:'Titan',min:100000,icon:'🗿'},{name:'Celestial',min:200000,icon:'☄️'},{name:'Eternal',min:400000,icon:'♾️'},
 {name:'Mythic',min:800000,icon:'🐉'},{name:'Transcendent',min:1500000,icon:'🌠'},{name:'Cosmic',min:3000000,icon:'🪐'},
 {name:'Infinite',min:6000000,icon:'💫'},{name:'Nyxborn',min:12000000,icon:'🌑'}];
-const BT_GAMES = {math:'Math',dots:'Dots',memory:'Memory',focus:'Focus',aim:'Aim',reflex:'Reflex',odd:'Odd One Out',nback:'N-Back',seq:'Sequence'};
+const BT_GAMES = {grammar:'Grammar',math:'Math',dots:'Dots',memory:'Memory',focus:'Focus',aim:'Aim',reflex:'Reflex',odd:'Odd One Out',nback:'N-Back',seq:'Sequence'};
 const BT = {}; window.BT = BT;   // const globals are not on window by themselves
 (function () {
  const LS = localStorage, rawSet = Storage.prototype.setItem, si = window.setInterval;
  const num = k => parseInt(LS.getItem(k)) || 0;
- const PAGES = {'math.html':'math','dots.html':'dots','memory.html':'memory','stroop.html':'focus','aim.html':'aim','avoid.html':'reflex','oddout.html':'odd','nback.html':'nback','sequence.html':'seq'};
- const FILES = {math:'math.html',dots:'dots.html',memory:'memory.html',focus:'stroop.html',aim:'aim.html',reflex:'avoid.html',odd:'oddout.html',nback:'nback.html',seq:'sequence.html'};
+ const PAGES = {'grammar.html':'grammar','math.html':'math','dots.html':'dots','memory.html':'memory','stroop.html':'focus','aim.html':'aim','avoid.html':'reflex','oddout.html':'odd','nback.html':'nback','sequence.html':'seq'};
+ const FILES = {grammar:'grammar.html',math:'math.html',dots:'dots.html',memory:'memory.html',focus:'stroop.html',aim:'aim.html',reflex:'avoid.html',odd:'oddout.html',nback:'nback.html',seq:'sequence.html'};
  const KEY = PAGES[location.pathname.split('/').pop()];
  BT.daily = () => {   // 2 or 3 different games, the same for everyone on a given day
   let h = 0; for (const ch of BT.today()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   const pool = Object.keys(BT_GAMES), list = [], n = 2 + ((h >>> 3) % 2); let x = h;
   for (let i = 0; i < n; i++) { x = (Math.imul(x, 1103515245) + 12345) >>> 0; list.push(pool.splice(Math.floor(x / 65536) % pool.length, 1)[0]); }
   return {list, need: n};
+ };
+ BT.FILES = FILES;
+ BT.dailyState = () => {   // what the Daily challenge button and popup show
+  const k = BT.daily(), t = BT.today(); let pr; try { pr = JSON.parse(LS.getItem('bt_daily_prog')) || {}; } catch (e) { pr = {}; }
+  const dn = pr.d === t && Array.isArray(pr.done) ? pr.done.filter(x => k.list.includes(x)) : [];
+  return {list: k.list, done: dn, complete: LS.getItem('bt_daily_done') === t};
  };
  const SALT = 'bt1-Shadowed-7f3a', PROT = k => /^bt_(coins|unlocked_.+|skins|current_skin|wins|ach|streak|daily_total|pb|wallet|cal|best_streak|daily_prog|ledger|lbase|lanchor)$/.test(k);
  const hash = s => { let h1 = 0xdeadbeef, h2 = 0x41c6ce57; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); } h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909); h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909); return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36); };
@@ -41,10 +47,10 @@ const BT = {}; window.BT = BT;   // const globals are not on window by themselve
   if (document.body) { toast(tamperMsg); tamperMsg = ''; }
  }
  // ---------- Earnings ledger: every reward is a chained log entry, and your totals must match the log ----------
- const LEDGER_MAX = 200, GKEYS = ['math', 'dots', 'memory', 'focus', 'aim', 'reflex', 'odd', 'nback', 'seq'];
+ const LEDGER_MAX = 200, GKEYS = ['grammar', 'math', 'dots', 'memory', 'focus', 'aim', 'reflex', 'odd', 'nback', 'seq'];
  BT.SKINS = Object.fromEntries(BT_SKIN_LIST.map(s => [s.id, s.cost]));   // prices (earned skins can never be bought)
- BT.BONUS = {math: 10, dots: 14, focus: 10, aim: 20, odd: 10, reflex: 0};   // most extra seconds a round can legitimately earn
- BT.MIN_S = {math: 5, dots: 1.5, memory: 2.5, focus: 4, aim: 3, odd: 3, nback: 25, seq: 3};   // fastest believable clear, in seconds
+ BT.BONUS = {grammar: 10, math: 10, dots: 14, focus: 10, aim: 20, odd: 10, reflex: 0};   // most extra seconds a round can legitimately earn
+ BT.MIN_S = {grammar: 8, math: 5, dots: 1.5, memory: 2.5, focus: 4, aim: 3, odd: 3, nback: 25, seq: 3};   // fastest believable clear, in seconds
  const lget = () => { try { return JSON.parse(LS.getItem('bt_ledger')) || []; } catch (e) { return []; } };
  const lbase = () => { try { return JSON.parse(LS.getItem('bt_lbase')); } catch (e) { return null; } };
  const lh = (prev, body) => hash(SALT + 'L' + prev + JSON.stringify(body));
@@ -243,7 +249,8 @@ const BT = {}; window.BT = BT;   // const globals are not on window by themselve
   {id:'lb',icon:'📊',name:'On the Board',test:() => LS.getItem('bt_lb_tier') !== null},
   {id:'lbs',icon:'🥈',name:'Silver Climber',test:() => Number(LS.getItem('bt_lb_tier') || -1) >= 1},
   {id:'lbg',icon:'🥇',name:'Gold Climber',test:() => Number(LS.getItem('bt_lb_tier') || -1) >= 2},
-  {id:'lbd',icon:'💎',name:'Diamond Climber',test:() => Number(LS.getItem('bt_lb_tier') || -1) >= 4}
+  {id:'lbd',icon:'💎',name:'Diamond Climber',test:() => Number(LS.getItem('bt_lb_tier') || -1) >= 4},
+  {id:'gr10',icon:'📝',name:'Grammar Pro (Level 10)',test:() => num('bt_unlocked_grammar') >= 10}
  ];
  function grantSkins() {   // earned skins appear on their own once you qualify
   let own; try { own = JSON.parse(LS.getItem('bt_skins')) || ['red']; } catch (e) { own = ['red']; }
@@ -258,7 +265,9 @@ const BT = {}; window.BT = BT;   // const globals are not on window by themselve
   return got.concat(fresh.map(a => a.id));
  }
  BT.checkAch = checkAch; BT.achTotal = ACH.length;
+ BT.ach = () => { const got = checkAch(); return ACH.map(a => ({id: a.id, icon: a.icon, name: a.name, got: got.includes(a.id)})); };   // for the Achievements popup
  const HOW = {
+  grammar:'Read the sentence and tap the word or phrase that fills the gap correctly. Get 10 right to clear the level. Each right answer adds 1 second, and a wrong answer costs 3 seconds. On a keyboard you can press 1, 2, 3 or 4. Higher levels use harder grammar and more choices.',
   math:'Type the answer to the falling equation. Solve 10 to clear the level. Each correct answer adds 1 second.',
   dots:'Tap the numbered dots in order, starting from 1, before time runs out. A wrong tap fails the level.',
   memory:'Watch the glowing blocks, then tap all of them from memory. One wrong tap fails the level.',
@@ -271,6 +280,7 @@ const BT = {}; window.BT = BT;   // const globals are not on window by themselve
  };
  const G9 = (lit, extra) => '<div class="dm-g">' + Array.from({length: 9}, (_, i) => '<i' + (lit[i] !== undefined ? ' class="a" style="animation-delay:' + lit[i] + 's"' : '') + '></i>').join('') + '</div>' + (extra || '');
  const DEMO = {
+  grammar: () => '<div class="dm"><b class="dm-big">She <span class="dm-blink">goes</span> home.</b></div><div class="dm"><b class="dm-cap">go &nbsp;·&nbsp; goes</b></div>',
   math: () => '<div class="dm"><b class="dm-big">7 + 5 = <span class="dm-blink">12</span></b></div>',
   dots: () => '<div class="dm"><div class="dm-dots"><i></i><i></i><i></i><i></i><i></i></div><b class="dm-big">&nbsp;How many?</b></div>',
   memory: () => '<div class="dm">' + G9({1: 0, 3: .9, 8: 1.8}, '<b class="dm-cap">then tap them</b>') + '</div>',
@@ -424,12 +434,16 @@ const BT = {}; window.BT = BT;   // const globals are not on window by themselve
    ia.after(row);
   }
   const got = checkAch();
+  const ds = document.getElementById('daily-state');
+  if (ds) { const st = BT.dailyState(); ds.textContent = st.complete ? '✅' : st.done.length + '/' + st.list.length; }
   const dl = document.getElementById('bt-daily');
   if (dl) {
    const k = BT.daily(), done = LS.getItem('bt_daily_done') === BT.today(); let pr; try { pr = JSON.parse(LS.getItem('bt_daily_prog')) || {}; } catch (e) { pr = {}; }
    const dn = pr.d === BT.today() && Array.isArray(pr.done) ? pr.done : [];
    dl.innerHTML = done ? '✅ Daily challenge complete! Come back tomorrow.' : '🎯 Daily challenge: ' + k.list.map(x => (dn.includes(x) ? '✅ ' : '▶ ') + '<a href="' + FILES[x] + '" style="color:var(--accent)">' + BT_GAMES[x] + '</a>').join(' → ') + ' · +60 🪙';
   }
+  const as = document.getElementById('ach-state');
+  if (as) as.textContent = got.length + '/' + ACH.length;
   const ac = document.getElementById('bt-ach');
   if (ac) ac.innerHTML = ACH.map(a => '<div title="' + a.name + '" style="width:76px;text-align:center;font-size:.65rem;opacity:' + (got.includes(a.id) ? 1 : .25) + '"><div style="font-size:1.7rem">' + a.icon + '</div>' + a.name + '</div>').join('');
   const cl = document.getElementById('bt-cal');

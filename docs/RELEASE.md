@@ -35,7 +35,7 @@ This APK is signed with a temporary debug key, which is fine for testing. A debu
 different keys, so they cannot update each other: uninstall one before installing the other.
 
 ## 3. Test before you release
-Open the app and check: first launch asks for a nickname, a game plays, Settings opens, Export shows the code box,
+Open the app and check: first launch asks for a nickname, a game plays, Settings opens, Export shows the code box and QR code (with Cloud save on), the Daily challenge and Achievements buttons open, a Grammar level plays,
 the sound keeps playing between pages, the back button goes back, and (if you set up Supabase) the leaderboard loads.
 
 ## 4. Make a release on GitHub
@@ -62,9 +62,10 @@ Read F-Droid's current guide first: f-droid.org/docs (Submitting to F-Droid, and
 ## Notes
 - The APK build was written but could not be run where it was created. If the first GitHub build fails, send me the log.
 - Needs Android 7 or newer. For the best look, keep "Android System WebView" updated (the game uses modern CSS).
-- Progress is stored inside the app. Uninstalling deletes it. Use Settings -> Data -> Export first.
+- Progress is stored inside the app. Uninstalling deletes it. Turn on Cloud save (Settings -> Online) and use Settings -> Data -> Export first to get a restore code and QR code.
 
 ## Checklist before every release / F-Droid submission
+0. Run `supabase/schema.sql` in the Supabase SQL Editor whenever it changed (this release adds the Grammar game to the server).
 1. Run `python3 tools/set_version.py <versionName> <versionCode>`. It also updates `fdroid/*.yml` and warns if a page, script or stylesheet is missing from `sw.js` (the offline list).
 2. Edit `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` (max 500 bytes).
 3. If you changed the blocked-words lists or the icons, run `python3 tools/gen_namefilter.py` and `python3 tools/gen_avatars.py`, then `node tools/test_namefilter.js`.

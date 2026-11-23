@@ -185,17 +185,13 @@ html.bt-anim button:active:not(:disabled), html.bt-anim .game-card:active { tran
 html.bt-anim .shield.legend { animation: nx-glow 2.4s ease-in-out infinite; }
 
 /* ---- Page transitions (leaving and entering) ---- */
-@keyframes nx-zoom-in { from { opacity: 0; transform: scale(.93); } to { opacity: 1; transform: none; } }
-@keyframes nx-slide-in { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
-@keyframes nx-back-in { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
-@keyframes nx-zoom-out { to { opacity: 0; transform: scale(1.06); } }
-@keyframes nx-slide-out { to { opacity: 0; transform: translateX(-36px); } }
-@keyframes nx-back-out { to { opacity: 0; transform: translateX(36px); } }
+@keyframes nx-slide-in { from { opacity: 0; transform: translateX(64px); } to { opacity: 1; transform: none; } }
+@keyframes nx-back-in { from { opacity: 0; transform: translateX(-64px); } to { opacity: 1; transform: none; } }
+@keyframes nx-slide-out { to { opacity: 0; transform: translateX(-64px); } }
+@keyframes nx-back-out { to { opacity: 0; transform: translateX(64px); } }
 html.bt-anim body { animation: nx-fade .35s ease both; }
-html.bt-anim[data-enter="zoom"] body { animation: nx-zoom-in .38s cubic-bezier(.2, .9, .3, 1) both; }
 html.bt-anim[data-enter="slide"] body { animation: nx-slide-in .38s cubic-bezier(.2, .9, .3, 1) both; }
 html.bt-anim[data-enter="back"] body { animation: nx-back-in .38s cubic-bezier(.2, .9, .3, 1) both; }
-html.bt-anim.nx-leave-zoom body { animation: nx-zoom-out .23s ease both; }
 html.bt-anim.nx-leave-slide body { animation: nx-slide-out .23s ease both; }
 html.bt-anim.nx-leave-back body { animation: nx-back-out .23s ease both; }
 
@@ -239,3 +235,29 @@ html.bt-anim .bt-modal.bt-side > .bt-card { animation: nx-side .28s cubic-bezier
 html.bt-anim .bt-modal.bt-side.bt-out > .bt-card { animation: nx-side-out .2s ease both; }
 html.bt-anim .bt-side > .bt-card > * { animation: none !important; }
 @media (min-width: 900px) { .bt-modal.bt-side > .bt-card { width: 440px; } }
+
+/* ---------- Page slide: the page behind the sliding body keeps the theme colour, and reduced motion switches it all off ---------- */
+html[data-theme="dark"] { background: #050505; }
+html[data-theme="light"] { background: #f5f5f5; }
+html { overflow-x: hidden; }
+@media (prefers-reduced-motion: reduce) { html body { animation: none !important; } }
+
+/* ---------- Header buttons look the same on every page (Settings, Menu, Profile) ---------- */
+.header-btn, #gear, #menu-btn { background: transparent; border: 1px solid var(--border); color: var(--text); cursor: pointer; font-family: inherit; }
+.header-btn:hover, #gear:hover, #menu-btn:hover { border-color: var(--accent); }
+
+/* ---------- Home quick buttons, Daily challenge and Achievements popups ---------- */
+.quick-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 92%; max-width: 760px; margin: 18px auto 6px; }
+.quick-btn { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 11px 18px; font-size: .95rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: .2s; }
+.quick-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+.quick-btn small { margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #000; font-weight: 700; font-size: .75rem; }
+.dc-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+.dc-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; color: var(--text); text-decoration: none; }
+.dc-row:hover { border-color: var(--accent); }
+.dc-row b { flex: 1; } .dc-row small { color: var(--subtext); }
+.dc-row.done { opacity: .6; }
+a.bt-btn { display: inline-block; text-decoration: none; }
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; margin-top: 10px; }
+.ach { text-align: center; font-size: .72rem; line-height: 1.25; opacity: .3; padding: 8px 4px; border: 1px solid var(--border); border-radius: 12px; }
+.ach.got { opacity: 1; border-color: var(--accent); }
+.ach-i { font-size: 1.8rem; margin-bottom: 4px; }

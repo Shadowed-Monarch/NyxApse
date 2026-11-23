@@ -36,7 +36,7 @@
  }
  const rpc = async (fn, args) => { const s = await session(); return call('/rest/v1/rpc/' + fn, args, s.access_token); };
 
- async function join(nick, avatar) { try { return (await rpc('register_player', {p_nick: nick, p_avatar: avatar})) || {ok: false, error: 'network'}; } catch (e) { return {ok: false, error: 'network'}; } }
+ async function join(nick, avatar) { try { return (await rpc('register_player', {p_nick: nick, p_avatar: avatar})) || {ok: false, error: 'network'}; } catch (e) { return {ok: false, error: 'network', code: e && e.message}; } }
  const board = game => rpc('get_board', {p_game: game || 'all'});
  const me = async () => { try { const r = await rpc('get_me', {}); if (r && r.joined) { LS.setItem('bt_lb_tier', String(r.best_tier)); LS.setItem('bt_lb_me', JSON.stringify(r)); if (window.BT && BT.checkAch) BT.checkAch(); } return r; } catch (e) { return null; } };
  const profileOf = nick => rpc('get_profile', {p_nick: nick});

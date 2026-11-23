@@ -48,18 +48,22 @@ const BT_SKINS = BT_SKIN_LIST;   // old name, kept for compatibility
 })();
 
 
-const BT_DEFAULTS = {noise: 'off', vol: 0.8, sfx: true, vibe: true, theme: 'dark', style: 'neon', glow: true, grain: true, confetti: true, big: false, compact: false, mono: false, cb: false, anim: true, leaderboard: false, timers: {}};
+const BT_DEFAULTS = {noise: 'off', vol: 0.8, sfx: true, vibe: true, theme: 'auto', style: 'neon', glow: true, grain: true, confetti: true, big: false, compact: false, mono: false, cb: false, anim: true, leaderboard: false, timers: {}};
 function btCfg() {
     let s = {}; try { s = JSON.parse(localStorage.getItem('bt_settings')) || {}; } catch (e) {}
-    const legacy = {theme: localStorage.getItem('bt_mode') || 'dark', sfx: localStorage.getItem('bt_sfx') !== 'off'};
+    const legacy = {};   // settings from very old versions (only used when set, so the defaults above really are the defaults)
+    if (localStorage.getItem('bt_mode')) legacy.theme = localStorage.getItem('bt_mode');
+    if (localStorage.getItem('bt_sfx') === 'off') legacy.sfx = false;
     return Object.assign({}, BT_DEFAULTS, legacy, s);
 }
 function btSave(patch) { const c = Object.assign(btCfg(), patch); localStorage.setItem('bt_settings', JSON.stringify(c)); applyTheme(); return c; }
+// Reduced motion: if the device asks for less movement, menu, popup and page-slide animations stay off.
+const btReduceMotion = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
 function btApplyClasses() {
     const c = btCfg(), root = document.documentElement;
     root.setAttribute('data-theme', c.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : c.theme);
     root.classList.toggle('bt-min', c.style === 'minimal'); root.classList.toggle('bt-noglow', !c.glow); root.classList.toggle('bt-nograin', !c.grain);
-    root.classList.toggle('bt-mono', !!c.mono); root.classList.toggle('bt-cb', !!c.cb); root.classList.toggle('bt-anim', c.anim !== false && c.style !== 'minimal'); root.classList.toggle('bt-big', !!c.big); root.classList.toggle('bt-compact', !!c.compact);
+    root.classList.toggle('bt-mono', !!c.mono); root.classList.toggle('bt-cb', !!c.cb); root.classList.toggle('bt-anim', c.anim !== false && c.style !== 'minimal' && !btReduceMotion()); root.classList.toggle('bt-big', !!c.big); root.classList.toggle('bt-compact', !!c.compact);
 }
 function applySkin(id) {
     const skin = BT_SKIN_LIST.find(c => c.id === id) || BT_SKIN_LIST[0], b = document.body, root = document.documentElement;
@@ -73,6 +77,7 @@ function applyTheme() {
     btApplyClasses();
     applySkin(localStorage.getItem('bt_current_skin') || 'red');
 }
+try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => applyTheme()); matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => applyTheme()); } catch (e) { /* old browser: applied on the next page */ }
 window.addEventListener('DOMContentLoaded', applyTheme);
 window.addEventListener('focus', applyTheme);
 

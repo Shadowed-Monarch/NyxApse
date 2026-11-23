@@ -1,6 +1,7 @@
 NyxApse is a collection of fast mini games for practicing speed, focus and memory. It works fully offline, has no ads and no tracking, and is open source (MIT).
 
 GAMES
+- Grammar: pick the word that fills the gap
 - Math: solve falling equations before time runs out
 - Dots: tap the numbered dots in order
 - Memory: remember the glowing blocks
@@ -14,10 +15,10 @@ GAMES
 FEATURES
 - Endless levels that get harder as you improve, with 16 Brain Power ranks from Student to Nyxborn
 - Coins to spend on 32 skins, including animated ones
-- Daily challenge (2 or 3 games a day), streak calendar and 29 badges
-- 30 drawn profile icons, plus emoji avatars
-- Settings for sound (brown, pink or white noise), looks (including a flat, fast Minimal style, a black and white switch and a colorblind-friendly mode) and game timers
-- Smooth menu and page animations that you can switch off
+- Daily challenge (2 or 3 games a day), streak calendar and 30 badges
+- 50 drawn profile icons (dragons, ghosts and more), plus emoji avatars
+- Settings for sound (brown, pink or white noise), looks (including a flat, fast Minimal style, a black and white switch and a colorblind-friendly mode)
+- Smooth menu and page-slide animations (off in Minimal style and with reduced motion)
 - Optional Cloud save for players 16 and older: restore your progress with a 10-digit code after clearing data or changing phone
 - Pause any game with Space or P on a keyboard
 - Optional online leaderboard (off by default, for players 16 and older): weekly divisions from Bronze to Legend, seasons, and public profiles. It needs internet and uses a hosted Supabase service. It only shares a nickname, an avatar, your division and your win records.

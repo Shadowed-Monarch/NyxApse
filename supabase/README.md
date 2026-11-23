@@ -15,6 +15,7 @@ The game works without any of this. Do these steps only when you want online lea
 6. **Test:** open the game, make a nickname, switch on Settings -> Leaderboard, win a level, then open the Leaderboard.
 
 ## Upgrading from an older version
+This release adds the **Grammar** game and removes the old timer-based reward check (`bp_ok`). Run the new `schema.sql` once in the SQL Editor; it also drops the old function.
 Paste the new `schema.sql` into the SQL Editor and Run it again. It keeps your players and adds the new columns and tables.
 The first call after that puts everyone in Bronze 3, in groups of up to 30.
 
@@ -34,7 +35,7 @@ To see saves: `select nick_key, updated_at, length(blob) from public.cloud_saves
 
 ## How it stays honest
 - Nobody can read or write the tables directly. Every action goes through a function that checks the rules.
-- Only wins at the normal timer count, and the reward has to match the game's formula exactly.
+- Game timers are fixed, so every win has the same reward formula, and the reward has to match it exactly (there is no timer-based scaling any more).
 - Each game has a fastest believable time, and a player can't log more than 240 wins an hour.
 - Boards reset every Monday (UTC), so cheaters can't stay on top.
 - A level can only be won if it is at most one above your best (the first time: up to 500), and nobody can log more than an hour of play in an hour.

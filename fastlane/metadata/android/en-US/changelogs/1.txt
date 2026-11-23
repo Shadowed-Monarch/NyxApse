@@ -1,4 +1,4 @@
 First release.
-- 9 games, daily challenge, streak calendar, 29 badges, 16 ranks
-- 32 skins, 30 drawn icons, colorblind-friendly mode, optional animations
+- 10 games (new: Grammar), daily challenge, streak calendar, 30 badges, 16 ranks
+- 32 skins, 50 drawn icons, colorblind-friendly mode, optional animations
 - Optional leaderboard (divisions, seasons) and Cloud save with a restore code (16+)

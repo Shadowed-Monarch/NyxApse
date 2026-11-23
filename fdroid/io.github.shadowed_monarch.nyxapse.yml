@@ -11,11 +11,10 @@ SourceCode: https://github.com/shadowed-monarch/NyxApse
 IssueTracker: https://github.com/shadowed-monarch/NyxApse/issues
 Changelog: https://github.com/shadowed-monarch/NyxApse/releases
 
-# The optional leaderboard (off by default, 15+) talks to a hosted Supabase server. The server code is in supabase/schema.sql.
-# F-Droid may ask you to add this label. If a reviewer asks, accept it: the app works fully without the leaderboard.
-# AntiFeatures:
-#   NonFreeNet:
-#     en-US: The optional online leaderboard uses a hosted Supabase service.
+# The optional leaderboard and Cloud save (both off by default, 16+) talk to a hosted Supabase server. The server code is in supabase/schema.sql.
+AntiFeatures:
+  NonFreeNet:
+    en-US: The optional online leaderboard and Cloud save use a hosted Supabase service.
 
 AutoName: NyxApse
 
@@ -25,6 +24,7 @@ Repo: https://github.com/shadowed-monarch/NyxApse.git
 Builds:
   - versionName: 1.0.0
     versionCode: 1
+    # Before submitting: replace the tag with the FULL commit hash of the release (git rev-parse v1.0.0)
     commit: v1.0.0
     subdir: android/app
     gradle:
