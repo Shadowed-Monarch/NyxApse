@@ -1,6 +1,18 @@
 /* theme.js - Shared theme for every NyxApse page
    Handles: light/dark mode, accent skin, rainbow animation, fallback CSS variables */
 const BT_BUILD = '1.0.0';
+
+// ---------- One-time fresh start ----------
+// Everything saved by earlier test versions is erased ONCE, on every device that opens this version (online or not).
+// New installs have nothing to erase. Progress is never erased again unless BT_EPOCH is changed on purpose in a later release.
+const BT_EPOCH = 'fresh-1';
+try {
+    if (localStorage.getItem('bt_epoch') !== BT_EPOCH) {
+        Object.keys(localStorage).filter(k => k.startsWith('bt_') || k.startsWith('nx_')).forEach(k => localStorage.removeItem(k));
+        try { sessionStorage.clear(); } catch (e) { /* ignore */ }
+        localStorage.setItem('bt_epoch', BT_EPOCH);
+    }
+} catch (e) { /* storage blocked: nothing to erase */ }
 const BT_SKIN_LIST = [
     // solid colours (cost in coins)
     {id: 'red', name: 'Red', hex: '#ff0000', cost: 0}, {id: 'blue', name: 'Blue', hex: '#0088ff', cost: 100}, {id: 'coral', name: 'Coral', hex: '#ff6f61', cost: 150},

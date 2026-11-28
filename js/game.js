@@ -368,8 +368,8 @@ const BT = {}; window.BT = BT;   // const globals are not on window by themselve
   const s = prompt('Paste your save code:'); if (!s) return;
   if (!BT.applySave(s)) alert('Invalid, edited or old save code. Export a fresh code from the updated game.');
  };
- BT.resetSave = () => {
-  if (confirm('Erase ALL progress? This cannot be undone.')) { Object.keys(LS).filter(k => k.startsWith('bt_')).forEach(k => LS.removeItem(k)); location.reload(); }
+ BT.resetSave = force => {   // force = the Reset popup in Settings already asked
+  if (force || confirm('Erase ALL progress? This cannot be undone.')) { Object.keys(LS).filter(k => k.startsWith('bt_')).forEach(k => LS.removeItem(k)); location.reload(); }
  };
 
  document.addEventListener('DOMContentLoaded', () => {

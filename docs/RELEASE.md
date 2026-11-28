@@ -77,3 +77,6 @@ Read F-Droid's current guide first: f-droid.org/docs (Submitting to F-Droid, and
 8. Submit or update the entry in the F-Droid `fdroiddata` repository (merge request). A reviewer may ask for changes: that is normal.
 Notes: F-Droid signs with its own key, so people must not mix GitHub and F-Droid installs. F-Droid builds with its own Gradle, so the generated wrapper from the GitHub workflow is not needed there.
 
+## Fresh start (BT_EPOCH)
+`js/theme.js` has `BT_EPOCH = 'fresh-1'`. Every device that opens a version with a new epoch value erases its saved NyxApse data once (all `bt_*` keys), online or offline, and then keeps its progress as normal. Test installs from before the release start clean this way.
+**Do not change `BT_EPOCH` after the public release**, because that erases real players' progress. Change it only on purpose.

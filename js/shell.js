@@ -111,7 +111,7 @@
      else if (confirm('Delete your nickname and win records from the leaderboard server?')) { note.textContent = 'Deleting...'; LB.deleteMe().then(r => { btSave({leaderboard: false}); note.textContent = r && r.ok ? 'Your leaderboard data was deleted.' : 'Could not reach the server. Try again later.'; sync(); }); } }
     if (t === 'cloudcode') { const note = el.querySelector('#cloud-note'); if (window.LB && LB.cloud.on()) showCode(LB.cloud.code(), (getProfile() || {}).name); else note.textContent = 'Cloud save is off. Turn it on first.'; }
     if (t === 'cloudsync') { const note = el.querySelector('#cloud-note'); if (!window.LB || !LB.cloud.on()) note.textContent = 'Cloud save is off. Turn it on first.'; else { note.textContent = 'Saving...'; LB.cloud.sync(true).then(r => { note.textContent = r && r.ok ? 'Saved.' : r && r.error === 'too_fast' ? 'Saved a moment ago. Try again in a few seconds.' : 'Could not reach the server. It will retry by itself.'; }); } }
-    if (t === 'export') openExport(); if (t === 'import') openRestore(); if (t === 'reset') BT.resetSave(); }
+    if (t === 'export') openExport(); if (t === 'import') openRestore(); if (t === 'reset') openReset(); }
   });
   el.addEventListener('input', e => {
    const i = e.target;
@@ -300,6 +300,29 @@
    if (b) b.onclick = async () => { if (await setLeaderboard(true, t => { joinBox.querySelector('#lb-msg').textContent = t; })) { showJoin(true); setTimeout(load, 1500); } };
   };
   el.querySelector('#lb-game').onchange = load; el.querySelector('#lb-ref').onclick = load; showJoin(!!btCfg().leaderboard); load();
+ }
+
+ // ---------- Reset: start a brand-new game ----------
+ // Erases this device. If the player ever used the leaderboard or Cloud save, the server copy is deleted too,
+ // which frees their nickname so anyone else can take it.
+ function openReset() {
+  const online = !!(window.LB && LB.configured() && localStorage.getItem('bt_lb_session'));
+  const m = modal(head('🗑 Start a new game?') +
+   '<p class="hint"><b>This erases everything on this device:</b> coins, levels, skins, badges, streaks, your profile and settings.</p>' +
+   (online ? '<p class="hint"><b>It also deletes your leaderboard records and cloud backup from the server.</b> Your rank, division and restore code are gone for good, and <b>your nickname becomes free, so someone else can take it.</b></p>' : '') +
+   '<p class="hint">This cannot be undone. Are you sure?</p><p class="hint" id="rs-note"></p>' +
+   '<div class="bt-btns"><button class="bt-btn" data-close>Cancel</button><button class="bt-btn pri" id="rs-go" style="background:#d32f2f;border-color:#d32f2f;color:#fff">Yes, erase everything</button></div>');
+  const note = m.el.querySelector('#rs-note'), go = m.el.querySelector('#rs-go');
+  const erase = () => BT.resetSave(true);
+  go.onclick = async () => {
+   if (!online) return erase();
+   go.disabled = true; note.textContent = 'Deleting your online data...';
+   const r = await LB.deleteMe();
+   if (r && r.ok) return erase();
+   note.innerHTML = 'Could not reach the server, so your online data and nickname would stay in place.';
+   go.disabled = false; go.textContent = 'Try again';
+   if (!m.el.querySelector('#rs-local')) { const b = document.createElement('button'); b.className = 'bt-btn'; b.id = 'rs-local'; b.textContent = 'Erase this device only'; b.onclick = erase; go.parentNode.appendChild(b); }
+  };
  }
 
  // ---------- Daily challenge popup ----------
