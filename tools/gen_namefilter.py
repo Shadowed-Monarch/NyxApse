@@ -10,7 +10,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STRONG = """fuck fvck phuck fuking fucking motherfuck shit shyt bullshit bitch biatch cunt whore slut bastard asshole arsehole
 dickhead cocksucker pussy penis vagina dildo blowjob handjob cumshot jizz wank wanker twat nigger nigga faggot retard spastic
 tranny chink rapist porn pornhub hentai neonazi hitler incest pedo paedo molest childporn killyourself
-admin moderator nyxapse shadowed""".split()
+admin moderator""".split()
+# Reserved for the developer: the SERVER refuses them (an account that already holds the name may keep it, see register_player),
+# but the app lets you type them so the developer can use their own name.
+RESERVED = """nyxapse shadowed""".split()
 # Blocked only as the WHOLE name or as a whole word in it (short words that appear inside innocent names)
 EXACT = """ass arse sex cum tit tits anal anus fag fags coon paki nazi nazis kkk kys xxx rape rapes raped nsfw dick cock boob boobs
 hoe thot milf orgy cuck spic kike loli shota mod mods staff official support owner dev system root
@@ -112,7 +115,7 @@ begin
 end $$;
 revoke all on function public.name_ok(text) from public, anon, authenticated;
 -- <<< NAMEFILTER
-""" % (arr(STRONG), arr(EXACT), arr(ALLOW), MAP_FROM, MAP_TO, MAP_FROM, MAP_TO, "013457", "oieast")
+""" % (arr(STRONG + RESERVED), arr(EXACT), arr(ALLOW), MAP_FROM, MAP_TO, MAP_FROM, MAP_TO, "013457", "oieast")
 
 open(os.path.join(ROOT, 'js/namefilter.js'), 'w', encoding='utf-8').write(js())
 p = os.path.join(ROOT, 'supabase/schema.sql'); s = open(p, encoding='utf-8').read()

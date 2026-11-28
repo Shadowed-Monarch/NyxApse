@@ -318,7 +318,10 @@ begin
   if nick !~ '^[A-Za-z0-9_. -]{3,16}$' then
     return jsonb_build_object('ok', false, 'error', 'bad_nickname');
   end if;
-  if not public.name_ok(nick) then
+  -- reserved or blocked names are refused, except for the account that already holds that exact name
+  -- (this is how the developer keeps their own name: set it once with SQL, see supabase/README.md)
+  if not public.name_ok(nick)
+     and not exists (select 1 from public.players where id = uid and lower(nickname) = lower(nick)) then
     return jsonb_build_object('ok', false, 'error', 'bad_nickname');
   end if;
   if exists (select 1 from public.players where lower(nickname) = lower(nick) and id <> uid) then

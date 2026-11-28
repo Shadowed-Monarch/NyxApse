@@ -42,3 +42,9 @@ To see saves: `select nick_key, updated_at, length(blob) from public.cloud_saves
 - Players with many impossible records are hidden until you review them, and a player reported by 5 different players is hidden too. Rankings, divisions and history exist only on the server; coins and skins are saved on the device and are cosmetic.
 - This cannot stop a determined cheater who reads the open-source code, but it makes cheating slow and short-lived.
   To remove a cheater: `update public.players set banned = true where lower(nickname) = lower('TheirName');`
+
+## Keeping the developer nickname (Shadowed)
+`shadowed` and `nyxapse` are reserved so nobody else can pretend to be you. The server refuses them, except for an account that already holds that exact name. To claim yours once:
+1. Join the leaderboard with any other nickname (for example `ShadowDev`).
+2. In the SQL Editor run: `update public.players set nickname = 'Shadowed' where lower(nickname) = lower('ShadowDev');`
+3. In the app, change your profile nickname to `Shadowed`. The server accepts it because your account already has it, and it keeps working after a Cloud save restore on a new phone.
